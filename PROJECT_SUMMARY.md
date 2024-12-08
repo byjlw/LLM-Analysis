@@ -3,10 +3,18 @@
 ## 1. Project Overview
 This project analyzes the code returned by LLM models to deterimine which models and frameworks are being used for a particular coding request and will eventually dig deeper to see how these frameworks are leveraged
 
-## 2. Technical Architecture
+## 2. Technical Details and Architecture
 
 
-## 3. Data Flow Diagram
+### 2.1
+* python 3.10+
+* use OpenRouter for interacting with LLMs
+* default_config.json for storing model to use
+* cli to kick the process off and allows for passing in models and openrouter key
+* Should use venv with .venv as the folder
+* Allow for installing this project
+
+## 3. Data Flow
 1. In anitial prompt `prompts/1-span_ideas.txt` will be sent to openrouter to generate a json file with a list of product ideas following this format
 ```
 [

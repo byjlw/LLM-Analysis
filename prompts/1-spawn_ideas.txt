@@ -1,0 +1,14 @@
+You are a consultant at a consulting company with experience helping companies incorparate AI into their products and services. You need to create exactly 15 product ideas to give to clients that cover a wide range industires and company profiles. 
+
+I'd like you to start create a matrix in json format
+* Product Idea
+* Problem it solves
+* Software Techstack
+* Target hardware expectations
+* Company profile
+* Engineering profile
+
+Do not include any ML or AI framework in the techstack. The engineers will decide which frameworks they'll use
+Company priles should be diverse such as: software services, desktop applications, mobile, AoTI, robots, etc
+
+Provide just the matrix, so it can be passed to the another process. Do not add anything else, it will break the process if you respond with anything but the json

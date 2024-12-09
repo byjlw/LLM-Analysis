@@ -33,13 +33,14 @@ class OpenRouterClient:
         self.base_url = "https://openrouter.ai/api/v1"
         logger.info(f"Initialized OpenRouter client with model: {default_model}")
         
-    def _make_request(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> Dict:
+    def _make_request(self, messages: List[Dict[str, str]], model: Optional[str] = None, max_tokens: int = 2000) -> Dict:
         """
         Make a request to the OpenRouter API with retry logic.
         
         Args:
             messages: List of message dictionaries with role and content
             model: Optional model override
+            max_tokens: Maximum number of tokens to generate
             
         Returns:
             Dict containing the API response
@@ -63,8 +64,7 @@ class OpenRouterClient:
             "model": model or self.default_model,
             "messages": messages,
             "temperature": 0.7,
-            "max_tokens": 2000,
-            "response_format": {"type": "json_object"}
+            "max_tokens": max_tokens
         }
         
         logger.info(f"Making request to OpenRouter API with model: {model or self.default_model}")
@@ -206,7 +206,7 @@ class OpenRouterClient:
             
         return validated_items
             
-    def generate_ideas(self, prompt: str, model: Optional[str] = None, max_format_retries: int = 3) -> list:
+    def generate_ideas(self, prompt: str, model: Optional[str] = None, max_format_retries: int = 3, max_tokens: int = 10000) -> list:
         """
         Generate product ideas using the specified prompt.
         
@@ -214,6 +214,7 @@ class OpenRouterClient:
             prompt: The prompt for generating ideas
             model: Optional model override
             max_format_retries: Maximum number of retries for format correction
+            max_tokens: Maximum number of tokens to generate
             
         Returns:
             List of generated ideas
@@ -238,7 +239,7 @@ class OpenRouterClient:
         
         for attempt in range(max_format_retries):
             try:
-                response = self._make_request(messages, model)
+                response = self._make_request(messages, model, max_tokens)
                 content = response["choices"][0]["message"]["content"]
                 logger.info(f"Raw content from API:\n{content}")
                 
@@ -286,13 +287,14 @@ class OpenRouterClient:
                 
         raise ValueError(f"Failed to get valid JSON format after {max_format_retries} attempts")
             
-    def generate_requirements(self, prompt: str, model: Optional[str] = None) -> str:
+    def generate_requirements(self, prompt: str, model: Optional[str] = None, max_tokens: int = 2000) -> str:
         """
         Generate requirements based on a product idea.
         
         Args:
             prompt: The prompt containing the product idea
             model: Optional model override
+            max_tokens: Maximum number of tokens to generate
             
         Returns:
             String containing the generated requirements
@@ -312,7 +314,7 @@ class OpenRouterClient:
                 "content": prompt
             }
         ]
-        response = self._make_request(messages, model)
+        response = self._make_request(messages, model, max_tokens)
         try:
             return response["choices"][0]["message"]["content"]
         except KeyError as e:
@@ -320,13 +322,14 @@ class OpenRouterClient:
             logger.error(error_msg)
             raise ValueError(error_msg)
             
-    def generate_code(self, prompt: str, model: Optional[str] = None) -> str:
+    def generate_code(self, prompt: str, model: Optional[str] = None, max_tokens: int = 2000) -> str:
         """
         Generate code based on requirements.
         
         Args:
             prompt: The prompt containing the requirements
             model: Optional model override
+            max_tokens: Maximum number of tokens to generate
             
         Returns:
             String containing the generated code
@@ -346,7 +349,7 @@ class OpenRouterClient:
                 "content": prompt
             }
         ]
-        response = self._make_request(messages, model)
+        response = self._make_request(messages, model, max_tokens)
         try:
             return response["choices"][0]["message"]["content"]
         except KeyError as e:

@@ -117,6 +117,9 @@ class IdeaGenerator:
         with open(prompt_file, 'r', encoding='utf-8') as f:
             prompt = f.read()
             
+        # Replace {NUM_IDEAS} with the actual number of ideas
+        prompt = prompt.replace("{NUM_IDEAS}", str(num_ideas))
+        
         logger.debug(f"Using prompt:\n{prompt}")
         
         try:

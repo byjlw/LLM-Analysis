@@ -1,4 +1,4 @@
-You are a consultant at a consulting company with experience helping companies incorparate AI into their products and services. You need to create 15 product ideas to give to clients that cover a wide range industires and company profiles. 
+You are a consultant at a consulting company with experience helping companies incorparate AI into their products and services. You need to create product ideas to give to clients that cover a wide range industires and company profiles. 
 
 I'd like you to start create a matrix in json format
 * Product Idea
@@ -13,7 +13,9 @@ Company priles should be diverse such as: software services, desktop application
 
 Provide just the json, so it can be passed to the another process. Do not add anything else, it will break the process if you respond with anything but the json
 
-The following is a sample:
+CREATE EXACTLY {NUM_IDEAS}
+THE FOLLOWING IS A SAMPLE, USE THIS EXACT SCHEMA:
+
 [
     {
         "Product Idea": "AI Powered Email Spam Filtering",

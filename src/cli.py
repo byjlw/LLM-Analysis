@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from enum import Enum, IntEnum
 
 from src.processors.code_generator import CodeGenerator
 from src.processors.dependency_collector import DependencyCollector
@@ -17,6 +18,30 @@ from src.utils.file_handler import FileHandler
 from src.utils.openrouter import OpenRouterClient
 
 logger = logging.getLogger(__name__)
+
+class ProcessStep(IntEnum):
+    """Process steps with integer values for comparison."""
+    IDEAS = 1
+    REQUIREMENTS = 2
+    CODE = 3
+    DEPENDENCIES = 4
+
+    @classmethod
+    def from_string(cls, step_str: str) -> 'ProcessStep':
+        """Convert string to ProcessStep enum."""
+        step_map = {
+            '1': cls.IDEAS,
+            '2': cls.REQUIREMENTS,
+            '3': cls.CODE,
+            '4': cls.DEPENDENCIES,
+            'ideas': cls.IDEAS,
+            'requirements': cls.REQUIREMENTS,
+            'code': cls.CODE,
+            'dependencies': cls.DEPENDENCIES
+        }
+        if step_str.lower() not in step_map:
+            raise ValueError(f"Invalid step: {step_str}. Valid steps are: 1/ideas, 2/requirements, 3/code, 4/dependencies")
+        return step_map[step_str.lower()]
 
 def setup_logging(log_level="INFO"):
     """Set up logging configuration."""
@@ -78,6 +103,12 @@ def parse_args():
         help='Output directory',
         default='output'
     )
+
+    parser.add_argument(
+        '--working-dir',
+        help='Working directory name (defaults to timestamp)',
+        default=None
+    )
     
     parser.add_argument(
         '--num-ideas',
@@ -98,29 +129,38 @@ def parse_args():
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         default='INFO'
     )
+
+    parser.add_argument(
+        '--start-step',
+        help='Step to start from (1/ideas, 2/requirements, 3/code, 4/dependencies)',
+        default='1'
+    )
     
     return parser.parse_args()
 
-def create_timestamped_dir(base_dir: str) -> str:
+def create_working_dir(base_dir: str, working_dir: str = None) -> str:
     """
-    Create a timestamped directory within the base directory.
+    Create a working directory within the base directory.
     
     Args:
         base_dir: Base directory path
+        working_dir: Optional working directory name, defaults to timestamp
         
     Returns:
-        Path to the created timestamped directory
+        Path to the created working directory
     """
     # Create base directory if it doesn't exist
     os.makedirs(base_dir, exist_ok=True)
     
-    # Create timestamped directory
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    timestamped_dir = os.path.join(base_dir, timestamp)
-    os.makedirs(timestamped_dir, exist_ok=True)
+    # Create working directory
+    if working_dir is None:
+        working_dir = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    logger.debug(f"Created timestamped directory: {timestamped_dir}")
-    return timestamped_dir
+    working_dir_path = os.path.join(base_dir, working_dir)
+    os.makedirs(working_dir_path, exist_ok=True)
+    
+    logger.debug(f"Created working directory: {working_dir_path}")
+    return working_dir_path
 
 def main():
     """Main entry point."""
@@ -144,10 +184,17 @@ def main():
         sys.exit(1)
     
     try:
-        # Create timestamped output directory
-        output_dir = create_timestamped_dir(args.output_dir)
+        # Parse starting step
+        try:
+            start_step = ProcessStep.from_string(args.start_step)
+        except ValueError as e:
+            logger.error(str(e))
+            sys.exit(1)
+
+        # Create working directory
+        output_dir = create_working_dir(args.output_dir, args.working_dir)
         
-        # Initialize components with the timestamped directory
+        # Initialize components with the working directory
         file_handler = FileHandler(output_dir)
         openrouter_client = OpenRouterClient(
             api_key=config['openrouter']['api_key'],
@@ -159,37 +206,41 @@ def main():
         # Create output directory structure
         file_handler.create_output_directory()
         
-        # Generate ideas
-        logger.info("Generating ideas...")
-        idea_generator = IdeaGenerator(file_handler, openrouter_client)
-        ideas_file = idea_generator.generate(args.num_ideas)
-        if not ideas_file:
-            logger.error("Failed to generate ideas")
-            sys.exit(1)
+        # Generate ideas if starting from step 1 or if required files don't exist
+        if start_step <= ProcessStep.IDEAS:
+            logger.info("Generating ideas...")
+            idea_generator = IdeaGenerator(file_handler, openrouter_client)
+            ideas_file = idea_generator.generate(args.num_ideas)
+            if not ideas_file:
+                logger.error("Failed to generate ideas")
+                sys.exit(1)
         
-        # Generate requirements
-        logger.info("Generating requirements...")
-        requirement_analyzer = RequirementAnalyzer(openrouter_client, file_handler)
-        requirements = requirement_analyzer.analyze_all()
-        if not requirements:
-            logger.error("Failed to generate requirements")
-            sys.exit(1)
-        logger.info(f"Generated {len(requirements)} requirement documents")
+        # Generate requirements if starting from step 2 or earlier
+        if start_step <= ProcessStep.REQUIREMENTS:
+            logger.info("Generating requirements...")
+            requirement_analyzer = RequirementAnalyzer(openrouter_client, file_handler)
+            requirements = requirement_analyzer.analyze_all()
+            if not requirements:
+                logger.error("Failed to generate requirements")
+                sys.exit(1)
+            logger.info(f"Generated {len(requirements)} requirement documents")
         
-        # Generate code
-        logger.info("Generating code...")
-        code_generator = CodeGenerator(file_handler, openrouter_client)
-        if not code_generator.generate():
-            logger.error("Failed to generate code")
-            sys.exit(1)
+        # Generate code if starting from step 3 or earlier
+        if start_step <= ProcessStep.CODE:
+            logger.info("Generating code...")
+            code_generator = CodeGenerator(file_handler, openrouter_client)
+            if not code_generator.generate():
+                logger.error("Failed to generate code")
+                sys.exit(1)
         
-        # Analyze dependencies
-        logger.info("Analyzing dependencies...")
-        dependency_collector = DependencyCollector(file_handler)
-        dependencies_file = dependency_collector.collect_all()
-        if not dependencies_file:
-            logger.error("Failed to analyze dependencies")
-            sys.exit(1)
+        # Analyze dependencies if starting from step 4 or earlier
+        if start_step <= ProcessStep.DEPENDENCIES:
+            logger.info("Analyzing dependencies...")
+            dependency_collector = DependencyCollector(file_handler)
+            dependencies_file = dependency_collector.collect_all()
+            if not dependencies_file:
+                logger.error("Failed to analyze dependencies")
+                sys.exit(1)
         
         logger.info("Processing complete")
         

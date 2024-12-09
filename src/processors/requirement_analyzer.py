@@ -47,7 +47,7 @@ class RequirementAnalyzer:
         )
         
         # Replace the placeholder in the template
-        return prompt_template.replace("THE IDEA", idea_str)
+        return prompt_template.replace("{THE_IDEA}", idea_str)
         
     def analyze_idea(self, idea: Dict, prompt_file: str = "prompts/2-idea-to-requirements.txt",
                     output_dir: str = None) -> str:

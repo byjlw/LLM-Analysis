@@ -322,7 +322,7 @@ class OpenRouterClient:
             logger.error(error_msg)
             raise ValueError(error_msg)
             
-    def generate_code(self, prompt: str, model: Optional[str] = None, max_tokens: int = 2000) -> str:
+    def generate_code(self, prompt: str, model: Optional[str] = None, max_tokens: int = 10000) -> str:
         """
         Generate code based on requirements.
         
@@ -342,7 +342,7 @@ class OpenRouterClient:
         messages = [
             {
                 "role": "system",
-                "content": "You are a helpful developer that provide only code."
+                "content": "You are a helpful software developer that provide only code."
             },
             {
                 "role": "user",
@@ -356,3 +356,63 @@ class OpenRouterClient:
             error_msg = f"Invalid response structure: missing key {str(e)}\nFull response:\n{json.dumps(response, indent=2)}"
             logger.error(error_msg)
             raise ValueError(error_msg)
+
+    def collect_dependencies(self, code: str, prompt: str, model: Optional[str] = None, max_tokens: int = 2000) -> Dict[str, List[str]]:
+        """
+        Analyze code to collect framework dependencies using LLM.
+        
+        Args:
+            code: The code content to analyze
+            prompt: The prompt template for dependency collection
+            model: Optional model override
+            max_tokens: Maximum number of tokens to generate
+            
+        Returns:
+            Dictionary containing frameworks list
+            
+        Raises:
+            RuntimeError: If the API request fails
+        """
+        logger.info("Starting dependency collection...")
+        
+        # Combine prompt template with code
+        full_prompt = prompt.replace("{DETAILS}", code)
+        
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a production engineer that analyzes code dependencies."
+            },
+            {
+                "role": "user",
+                "content": full_prompt
+            }
+        ]
+        
+        try:
+            response = self._make_request(messages, model, max_tokens)
+            content = response["choices"][0]["message"]["content"]
+            logger.info(f"LLM Response:\n{content}")
+            
+            # Clean and extract JSON content
+            json_content = self._clean_json_string(content)
+            # Parse the JSON content
+            frameworks = json.loads(json_content)
+            
+            # Ensure expected structure
+            if not isinstance(frameworks, list):
+                logger.error("Expected list response")
+                logger.error(f"Got: {json_content}")
+                return {"frameworks": []}
+            if not all(isinstance(x, str) for x in frameworks):
+                logger.error("All frameworks must be strings")
+                logger.error(f"Got: {json_content}")
+                return {"frameworks": []}
+                
+            # Return frameworks in expected format
+            return {"frameworks": frameworks}
+            
+        except Exception as e:
+            logger.error(f"Failed to collect dependencies: {str(e)}")
+            logger.error(f"LLM Response:\n{content if 'content' in locals() else 'No response received'}")
+            return {"frameworks": []}

@@ -92,7 +92,7 @@ class CodeGenerator:
             
             # Save code to file
             normalized_name = self._normalize_string(idea["Product Idea"])
-            code_file = os.path.join(code_dir, f"{normalized_name}.py")
+            code_file = os.path.join(code_dir, f"{normalized_name}.txt")
             
             with open(code_file, 'w', encoding='utf-8') as f:
                 f.write(code)

@@ -1,11 +1,10 @@
 """
-Processor for collecting framework and model dependencies from code files.
+Processor for collecting framework dependencies from code files.
 """
 
 import json
 import logging
 import os
-import re
 from collections import Counter
 from typing import Dict, List, Set, Union, Any
 
@@ -14,77 +13,12 @@ from src.utils.file_handler import FileHandler
 logger = logging.getLogger(__name__)
 
 class DependencyCollector:
-    """Collects framework and model dependencies from code files."""
+    """Collects framework dependencies from code files."""
 
-    def __init__(self, file_handler: FileHandler):
+    def __init__(self, file_handler: FileHandler, openrouter_client=None):
         """Initialize the collector."""
         self.file_handler = file_handler
-
-    def _extract_python_imports(self, content: str, filepath: str) -> Set[str]:
-        """Extract Python imports from code."""
-        imports = set()
-        
-        # Match import statements
-        import_patterns = [
-            r'import\s+(\w+)',  # import torch
-            r'from\s+(\w+)\s+import',  # from tensorflow import
-            r'import\s+(\w+)\s+as',  # import tensorflow as tf
-        ]
-        
-        for pattern in import_patterns:
-            for match in re.finditer(pattern, content):
-                module = match.group(1)
-                logger.debug(f"Found Python import in {filepath}: {module}")
-                imports.add(module)
-        
-        return imports
-
-    def _extract_js_imports(self, content: str, filepath: str) -> Set[str]:
-        """Extract JavaScript/TypeScript imports from code."""
-        imports = set()
-        
-        # Match import statements
-        import_patterns = [
-            r'from\s+[\'"]@?([^/\'"]+)',  # from '@tensorflow/tfjs'
-            r'import\s+.*?[\'"]@?([^/\'"]+)',  # import * from '@tensorflow/tfjs'
-            r'require\([\'"]@?([^/\'"]+)',  # require('@tensorflow/tfjs')
-        ]
-        
-        for pattern in import_patterns:
-            for match in re.finditer(pattern, content):
-                package = match.group(1)
-                logger.debug(f"Found JS/TS import in {filepath}: {package}")
-                imports.add(package)
-        
-        return imports
-
-    def _extract_model_references(self, content: str, filepath: str) -> Set[str]:
-        """Extract model references from code."""
-        models = set()
-        
-        # Match model loading patterns
-        model_patterns = [
-            # Python patterns
-            r'\.from_pretrained\([\'"]([^\'"]+)[\'"]',  # .from_pretrained("model-name")
-            r'\.load_model\([\'"]([^\'"]+)[\'"]',  # .load_model("model-name")
-            r'torch\.load\([\'"]([^\'"]+)[\'"]',  # torch.load("model-name")
-            r'torch\.hub\.load\([\'"]([^\'"]+)[\'"]',  # torch.hub.load("model-name")
-            r'tf\.saved_model\.load\([\'"]([^\'"]+)[\'"]',  # tf.saved_model.load("model-name")
-            r'tf\.keras\.models\.load_model\([\'"]([^\'"]+)[\'"]',  # tf.keras.models.load_model("model-name")
-            
-            # JavaScript patterns
-            r'loadLayersModel\([\'"]([^\'"]+)[\'"]',  # loadLayersModel("model-name")
-            r'loadGraphModel\([\'"]([^\'"]+)[\'"]',  # loadGraphModel("model-name")
-            r'model\.load\([\'"]([^\'"]+)[\'"]',  # model.load("model-name")
-        ]
-        
-        for pattern in model_patterns:
-            for match in re.finditer(pattern, content):
-                model = match.group(1)
-                logger.debug(f"Found model reference in {filepath}: {model}")
-                models.add(model)
-        
-        return models
+        self.openrouter_client = openrouter_client
 
     def analyze_file(self, filepath: str) -> Dict[str, Set[str]]:
         """Analyze a single file for dependencies."""
@@ -95,65 +29,53 @@ class DependencyCollector:
                 content = f.read()
         except UnicodeDecodeError:
             logger.warning(f"Failed to read {filepath} as UTF-8, skipping")
-            return {"frameworks": set(), "models": set()}
+            return {"frameworks": set()}
         except Exception as e:
             logger.error(f"Error reading {filepath}: {str(e)}")
-            return {"frameworks": set(), "models": set()}
-        
-        frameworks = set()
-        models = set()
-        
-        # Extract dependencies based on file type
+            return {"frameworks": set()}
+
+        # Get the dependency collection prompt
         try:
-            if filepath.endswith('.py'):
-                frameworks.update(self._extract_python_imports(content, filepath))
-            elif filepath.endswith(('.js', '.ts')):
-                frameworks.update(self._extract_js_imports(content, filepath))
-            
-            # Extract model references
-            models.update(self._extract_model_references(content, filepath))
-            
-            # Filter out standard library imports
-            frameworks = {f for f in frameworks if f not in {'os', 'sys', 'json', 'typing'}}
-            
-            logger.debug(f"Found in {filepath}:")
-            logger.debug(f"  Frameworks: {frameworks}")
-            logger.debug(f"  Models: {models}")
-            
-            return {
-                "frameworks": frameworks,
-                "models": models
-            }
+            with open(os.path.join("prompts", "4-collect-dependencies.txt"), "r") as f:
+                prompt = f.read()
         except Exception as e:
-            logger.error(f"Error analyzing {filepath}: {str(e)}")
-            return {"frameworks": set(), "models": set()}
+            logger.error(f"Failed to read dependency collection prompt: {str(e)}")
+            return {"frameworks": set()}
+
+        # Use LLM to analyze dependencies
+        try:
+            if self.openrouter_client:
+                result = self.openrouter_client.collect_dependencies(content, prompt)
+                return {"frameworks": set(result.get("frameworks", []))}
+            else:
+                logger.warning("No OpenRouter client provided, skipping LLM analysis")
+                return {"frameworks": set()}
+        except Exception as e:
+            logger.error(f"Error analyzing dependencies with LLM: {str(e)}")
+            return {"frameworks": set()}
 
     def analyze_directory(self, directory: str) -> Dict[str, Counter]:
         """Analyze all code files in a directory."""
         logger.info(f"Analyzing directory: {directory}")
         
         framework_counter = Counter()
-        model_counter = Counter()
         
         try:
             if os.path.exists(directory):
                 for root, _, files in os.walk(directory):
                     for file in files:
-                        if file.endswith(('.py', '.js', '.ts')):
+                        if file.endswith('.txt'):  # Only process .txt files
                             filepath = os.path.join(root, file)
                             results = self.analyze_file(filepath)
                             framework_counter.update(results["frameworks"])
-                            model_counter.update(results["models"])
         except Exception as e:
             logger.error(f"Error walking directory {directory}: {str(e)}")
         
         logger.info("Analysis complete:")
         logger.info(f"  Total frameworks found: {len(framework_counter)}")
-        logger.info(f"  Total models found: {len(model_counter)}")
         
         return {
-            "frameworks": framework_counter,
-            "models": model_counter
+            "frameworks": framework_counter
         }
 
     def _normalize_dependency_data(self, data: Dict[str, Counter]) -> Dict[str, List[Dict[str, Any]]]:
@@ -161,8 +83,7 @@ class DependencyCollector:
         Normalize dependency data into a consistent format with counts.
         """
         normalized = {
-            "frameworks": [],
-            "models": []
+            "frameworks": []
         }
         
         try:
@@ -173,21 +94,13 @@ class DependencyCollector:
                     "count": count
                 })
             
-            for model, count in data["models"].items():
-                normalized["models"].append({
-                    "name": model,
-                    "count": count
-                })
-            
             # Sort by name for consistent output
             normalized["frameworks"].sort(key=lambda x: x["name"])
-            normalized["models"].sort(key=lambda x: x["name"])
             
         except Exception as e:
             logger.error(f"Error normalizing dependency data: {str(e)}")
             return {
-                "frameworks": [],
-                "models": []
+                "frameworks": []
             }
         
         return normalized
@@ -263,8 +176,7 @@ class DependencyCollector:
             logger.error(f"Error collecting dependencies: {str(e)}")
             # Return a new dependencies file with empty data
             empty_data = {
-                "frameworks": [],
-                "models": []
+                "frameworks": []
             }
             output_path = self.file_handler.update_dependencies(empty_data)
             return output_path

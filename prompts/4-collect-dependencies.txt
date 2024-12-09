@@ -1,0 +1,5 @@
+Give me a list of all the frameworks in the code and details provided.
+Return only a json list of frameworks names nothing else
+
+HERE ARE THE DETAILS
+{DETAILS}

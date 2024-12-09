@@ -1,7 +1,7 @@
 {
     "openrouter": {
         "api_key": "",
-        "default_model": "meta-llama/llama-3.3-70b-instruct",
+        "default_model": "openai/gpt-4o-2024-11-20",
         "timeout": 120,
         "max_retries": 3
     },

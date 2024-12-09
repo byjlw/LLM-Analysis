@@ -119,6 +119,10 @@ def test_main_basic_execution(
     mock_req_cls.return_value = mock_requirement_analyzer
     mock_code_cls.return_value = mock_code_generator
     mock_dep_cls.return_value = mock_dependency_collector
+
+    # Set up mock OpenRouter client
+    mock_openrouter = Mock()
+    mock_openrouter_cls.return_value = mock_openrouter
     
     # Create necessary prompt file
     os.makedirs("prompts", exist_ok=True)
@@ -137,6 +141,9 @@ def test_main_basic_execution(
         timeout=120,
         max_retries=3
     )
+
+    # Verify DependencyCollector was created with OpenRouter client
+    mock_dep_cls.assert_called_once_with(mock_file_handler, mock_openrouter)
 
 @patch('sys.argv', ['llm-coding-analysis'])
 def test_main_missing_api_key():

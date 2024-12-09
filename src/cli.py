@@ -236,7 +236,7 @@ def main():
         # Analyze dependencies if starting from step 4 or earlier
         if start_step <= ProcessStep.DEPENDENCIES:
             logger.info("Analyzing dependencies...")
-            dependency_collector = DependencyCollector(file_handler)
+            dependency_collector = DependencyCollector(file_handler, openrouter_client)  # Pass openrouter_client
             dependencies_file = dependency_collector.collect_all()
             if not dependencies_file:
                 logger.error("Failed to analyze dependencies")

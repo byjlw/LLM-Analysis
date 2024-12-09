@@ -13,6 +13,7 @@ This project analyzes the code returned by LLM models to deterimine which models
 * cli to kick the process off and allows for passing in models and openrouter key
 * Should use venv with .venv as the folder
 * Allow for installing this project
+* Each run should should result in a new folder for the output files in `/output` and should include a timestamp
 
 ## 3. Data Flow
 1. In anitial prompt `prompts/1-span_ideas.txt` will be sent to openrouter to generate a json file with a list of product ideas following this format

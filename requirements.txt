@@ -1,6 +1,9 @@
 # Core dependencies
 requests==2.31.0
 urllib3==2.2.1
+chardet==5.2.0
+numpy==1.24.3
+typer<0.10.0
 
 # Testing dependencies
 pytest==8.0.0

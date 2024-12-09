@@ -4,9 +4,9 @@ OpenRouter API client for interacting with LLM models.
 
 import json
 import logging
+import os
 import re
-import time
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 import requests
 from requests.exceptions import RequestException, Timeout
 
@@ -16,7 +16,7 @@ class OpenRouterClient:
     """Client for interacting with the OpenRouter API."""
     
     def __init__(self, api_key: str, default_model: str = "meta-llama/llama-3.3-70b-instruct",
-                 timeout: int = 30, max_retries: int = 3):
+                 timeout: int = 60, max_retries: int = 3):
         """
         Initialize the OpenRouter client.
         
@@ -33,12 +33,12 @@ class OpenRouterClient:
         self.base_url = "https://openrouter.ai/api/v1"
         logger.info(f"Initialized OpenRouter client with model: {default_model}")
         
-    def _make_request(self, prompt: str, model: Optional[str] = None) -> Dict:
+    def _make_request(self, messages: List[Dict[str, str]], model: Optional[str] = None) -> Dict:
         """
         Make a request to the OpenRouter API with retry logic.
         
         Args:
-            prompt: The prompt to send to the model
+            messages: List of message dictionaries with role and content
             model: Optional model override
             
         Returns:
@@ -61,16 +61,7 @@ class OpenRouterClient:
         
         data = {
             "model": model or self.default_model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that provides responses in valid JSON format."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+            "messages": messages,
             "temperature": 0.7,
             "max_tokens": 2000,
             "response_format": {"type": "json_object"}
@@ -79,14 +70,20 @@ class OpenRouterClient:
         logger.info(f"Making request to OpenRouter API with model: {model or self.default_model}")
         logger.debug(f"Request data: {json.dumps(data, indent=2)}")
         
+        last_error = None
         for attempt in range(self.max_retries):
             try:
                 logger.info(f"Attempt {attempt + 1}/{self.max_retries}")
+                
+                # Use increasing timeout for retries
+                current_timeout = self.timeout * (attempt + 1)
+                logger.info(f"Using timeout of {current_timeout} seconds")
+                
                 response = requests.post(
                     f"{self.base_url}/chat/completions",
                     headers=headers,
                     json=data,
-                    timeout=self.timeout
+                    timeout=current_timeout
                 )
                 
                 if response.status_code == 401:
@@ -94,29 +91,32 @@ class OpenRouterClient:
                     
                 response.raise_for_status()
                 response_data = response.json()
-                logger.info(f"Full API Response:\n{json.dumps(response_data, indent=2)}")
+                logger.info("Request successful")
+                logger.debug(f"API Response:\n{json.dumps(response_data, indent=2)}")
                 return response_data
                 
-            except Timeout:
-                error_msg = f"Request timed out after {self.timeout} seconds"
-                logger.error(error_msg)
-                if attempt == self.max_retries - 1:
-                    raise RuntimeError(error_msg)
-                time.sleep(2 ** attempt)
+            except Timeout as e:
+                error_msg = f"Request timed out after {current_timeout} seconds"
+                logger.warning(error_msg)
+                last_error = e
                 
             except requests.exceptions.HTTPError as e:
                 error_msg = f"HTTP error occurred: {e.response.text}"
-                logger.error(error_msg)
-                if attempt == self.max_retries - 1:
-                    raise RuntimeError(error_msg)
-                time.sleep(2 ** attempt)
+                logger.warning(error_msg)
+                last_error = e
                 
             except RequestException as e:
                 error_msg = f"Request error occurred: {str(e)}"
-                logger.error(error_msg)
-                if attempt == self.max_retries - 1:
-                    raise RuntimeError(error_msg)
-                time.sleep(2 ** attempt)
+                logger.warning(error_msg)
+                last_error = e
+        
+        # If we've exhausted all retries, raise the last error
+        if isinstance(last_error, Timeout):
+            raise RuntimeError(f"Request timed out after {self.max_retries} attempts")
+        elif isinstance(last_error, requests.exceptions.HTTPError):
+            raise RuntimeError(f"HTTP error persisted after {self.max_retries} attempts: {str(last_error)}")
+        else:
+            raise RuntimeError(f"Request failed after {self.max_retries} attempts: {str(last_error)}")
                 
     def _clean_json_string(self, content: str) -> str:
         """
@@ -185,7 +185,7 @@ class OpenRouterClient:
                 raise ValueError(f"Item {i} is not a dictionary")
                 
             # Log the item being validated
-            logger.info(f"Validating item {i}:\n{json.dumps(item, indent=2)}")
+            logger.debug(f"Validating item {i}:\n{json.dumps(item, indent=2)}")
                 
             # Validate all required fields
             for field, expected_type in required_fields.items():
@@ -206,52 +206,85 @@ class OpenRouterClient:
             
         return validated_items
             
-    def generate_ideas(self, prompt: str, model: Optional[str] = None) -> list:
+    def generate_ideas(self, prompt: str, model: Optional[str] = None, max_format_retries: int = 3) -> list:
         """
         Generate product ideas using the specified prompt.
         
         Args:
             prompt: The prompt for generating ideas
             model: Optional model override
+            max_format_retries: Maximum number of retries for format correction
             
         Returns:
             List of generated ideas
             
         Raises:
-            ValueError: If the response format is invalid
+            ValueError: If the response format is invalid after all retries
             RuntimeError: If the API request fails
         """
         logger.info("Starting idea generation...")
-        response = self._make_request(prompt, model)
         
-        try:
-            # Extract the content from the response
-            content = response["choices"][0]["message"]["content"]
-            logger.info(f"Raw content from API:\n{content}")
-            
-            # Clean and extract JSON content
-            json_content = self._clean_json_string(content)
-            logger.info(f"Cleaned JSON content:\n{json_content}")
-            
-            # Parse the JSON content
-            data = json.loads(json_content)
-            logger.info(f"Parsed JSON data:\n{json.dumps(data, indent=2)}")
-            
-            # Validate and ensure correct structure
-            validated_data = self._validate_json_structure(data)
-            logger.info(f"Successfully processed {len(validated_data)} ideas")
-            
-            return validated_data
+        # Initialize conversation with system message and user prompt
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a Product Manager that provides responses in valid JSON format."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+        
+        for attempt in range(max_format_retries):
+            try:
+                response = self._make_request(messages, model)
+                content = response["choices"][0]["message"]["content"]
+                logger.info(f"Raw content from API:\n{content}")
                 
-        except json.JSONDecodeError as e:
-            error_msg = f"Failed to parse JSON response: {str(e)}\nRaw content:\n{content}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
+                # Clean and extract JSON content
+                json_content = self._clean_json_string(content)
+                logger.info(f"Cleaned JSON content:\n{json_content}")
                 
-        except KeyError as e:
-            error_msg = f"Invalid response structure: missing key {str(e)}\nFull response:\n{json.dumps(response, indent=2)}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
+                # Parse the JSON content
+                data = json.loads(json_content)
+                logger.debug(f"Parsed JSON data:\n{json.dumps(data, indent=2)}")
+                
+                # Validate and ensure correct structure
+                validated_data = self._validate_json_structure(data)
+                logger.info(f"Successfully processed {len(validated_data)} ideas")
+                
+                return validated_data
+                
+            except (json.JSONDecodeError, ValueError) as e:
+                error_msg = f"Attempt {attempt + 1}/{max_format_retries}: Format validation failed: {str(e)}"
+                logger.warning(error_msg)
+                
+                if attempt == max_format_retries - 1:
+                    raise ValueError(f"Failed to get valid JSON format after {max_format_retries} attempts")
+                
+                # Add assistant's response to conversation history
+                messages.append({
+                    "role": "assistant",
+                    "content": content
+                })
+                
+                # Read the error correction prompt from file
+                error_prompt_path = os.path.join("prompts", "e1-wrong_format.txt")
+                try:
+                    with open(error_prompt_path, "r") as f:
+                        error_message = f.read().strip()
+                    # Add error message to conversation history
+                    messages.append({
+                        "role": "user",
+                        "content": error_message
+                    })
+                    logger.info("Added format correction prompt to conversation...")
+                except IOError as e:
+                    logger.error(f"Failed to read error prompt file: {str(e)}")
+                    raise RuntimeError(f"Failed to read error prompt file: {str(e)}")
+                
+        raise ValueError(f"Failed to get valid JSON format after {max_format_retries} attempts")
             
     def generate_requirements(self, prompt: str, model: Optional[str] = None) -> str:
         """
@@ -269,7 +302,17 @@ class OpenRouterClient:
             ValueError: If the response is invalid
         """
         logger.info("Starting requirements generation...")
-        response = self._make_request(prompt, model)
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful Product Manager that provides responses in valid JSON format."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+        response = self._make_request(messages, model)
         try:
             return response["choices"][0]["message"]["content"]
         except KeyError as e:
@@ -293,7 +336,17 @@ class OpenRouterClient:
             ValueError: If the response is invalid
         """
         logger.info("Starting code generation...")
-        response = self._make_request(prompt, model)
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful developer that provide only code."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+        response = self._make_request(messages, model)
         try:
             return response["choices"][0]["message"]["content"]
         except KeyError as e:

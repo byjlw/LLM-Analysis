@@ -1,0 +1,17 @@
+{
+    "openrouter": {
+        "api_key": "",
+        "default_model": "meta-llama/llama-3.3-70b-instruct",
+        "timeout": 120,
+        "max_retries": 3
+    },
+    "output": {
+        "base_dir": "output",
+        "ideas_filename": "ideas.json",
+        "dependencies_filename": "dependencies.json"
+    },
+    "logging": {
+        "level": "DEBUG",
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    }
+}

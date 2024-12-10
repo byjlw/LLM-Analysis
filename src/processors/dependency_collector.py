@@ -20,8 +20,21 @@ class DependencyCollector:
         self.file_handler = file_handler
         self.openrouter_client = openrouter_client
 
-    def analyze_file(self, filepath: str) -> Dict[str, Set[str]]:
-        """Analyze a single file for dependencies."""
+    def analyze_file(self, filepath: str, prompt_file: str) -> Dict[str, Set[str]]:
+        """
+        Analyze a single file for dependencies.
+        
+        Args:
+            filepath: Path to the file to analyze
+            prompt_file: Path to the prompt template file
+            
+        Returns:
+            Dictionary containing frameworks set
+            
+        Raises:
+            FileNotFoundError: If files don't exist
+            ValueError: If analysis fails
+        """
         logger.debug(f"Analyzing file: {filepath}")
         
         try:
@@ -34,13 +47,13 @@ class DependencyCollector:
             logger.error(f"Error reading {filepath}: {str(e)}")
             return {"frameworks": set()}
 
-        # Get the dependency collection prompt
-        try:
-            with open(os.path.join("prompts", "4-collect-dependencies.txt"), "r") as f:
-                prompt = f.read()
-        except Exception as e:
-            logger.error(f"Failed to read dependency collection prompt: {str(e)}")
-            return {"frameworks": set()}
+        # Read the prompt file
+        if not os.path.exists(prompt_file):
+            logger.error(f"Prompt file not found: {prompt_file}")
+            raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
+
+        with open(prompt_file, 'r', encoding='utf-8') as f:
+            prompt = f.read()
 
         # Use LLM to analyze dependencies
         try:
@@ -54,8 +67,17 @@ class DependencyCollector:
             logger.error(f"Error analyzing dependencies with LLM: {str(e)}")
             return {"frameworks": set()}
 
-    def analyze_directory(self, directory: str) -> Dict[str, Counter]:
-        """Analyze all code files in a directory."""
+    def analyze_directory(self, directory: str, prompt_file: str) -> Dict[str, Counter]:
+        """
+        Analyze all code files in a directory.
+        
+        Args:
+            directory: Directory containing code files
+            prompt_file: Path to the prompt template file
+            
+        Returns:
+            Dictionary containing framework counter
+        """
         logger.info(f"Analyzing directory: {directory}")
         
         framework_counter = Counter()
@@ -66,7 +88,7 @@ class DependencyCollector:
                     for file in files:
                         if file.endswith('.txt'):  # Only process .txt files
                             filepath = os.path.join(root, file)
-                            results = self.analyze_file(filepath)
+                            results = self.analyze_file(filepath, prompt_file)
                             framework_counter.update(results["frameworks"])
         except Exception as e:
             logger.error(f"Error walking directory {directory}: {str(e)}")
@@ -125,17 +147,24 @@ class DependencyCollector:
         except Exception:
             return False
 
-    def collect_all(self, code_dir: str = None) -> str:
+    def collect_all(self, prompt_file: str = None, code_dir: str = None) -> str:
         """
         Collect all dependencies and save to file.
         
         Args:
+            prompt_file: Path to the prompt template file
             code_dir: Optional path to code directory. If not provided,
                      will use default path in current output directory.
         
         Returns:
             Path to the updated dependencies file
+            
+        Raises:
+            ValueError: If prompt_file is not provided or paths are invalid
         """
+        if prompt_file is None:
+            raise ValueError("prompt_file must be provided")
+
         if code_dir is None:
             if not self.file_handler.current_output_dir:
                 logger.error("No output directory has been created")
@@ -161,7 +190,7 @@ class DependencyCollector:
         
         try:
             # Analyze code directory
-            results = self.analyze_directory(code_dir)
+            results = self.analyze_directory(code_dir, prompt_file)
             
             # Normalize the data into a consistent format
             normalized_data = self._normalize_dependency_data(results)

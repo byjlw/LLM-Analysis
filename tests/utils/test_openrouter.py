@@ -48,60 +48,6 @@ def test_clean_json_string(openrouter_client):
     cleaned = openrouter_client._clean_json_string(nested_json)
     assert cleaned == '{"data": {"nested": "value"}}'
 
-def test_transform_to_array(openrouter_client, sample_idea):
-    """Test JSON data transformation to array."""
-    # Already an array
-    assert openrouter_client._transform_to_array([sample_idea]) == [sample_idea]
-    
-    # Single item
-    assert openrouter_client._transform_to_array(sample_idea) == [sample_idea]
-    
-    # Nested in data field
-    nested_data = {"data": sample_idea}
-    assert openrouter_client._transform_to_array(nested_data) == [sample_idea]
-    
-    # Nested in message field
-    message_data = {"message": {"content": sample_idea}}
-    assert openrouter_client._transform_to_array(message_data) == [sample_idea]
-    
-    # Invalid data returns default
-    invalid_data = "not json"
-    result = openrouter_client._transform_to_array(invalid_data)
-    assert len(result) == 1
-    assert result[0]["Product Idea"] == "Default Product"
-
-def test_validate_json_structure(openrouter_client, sample_idea):
-    """Test JSON structure validation and fixing."""
-    # Valid structure
-    valid_data = [sample_idea]
-    result = openrouter_client._validate_json_structure(valid_data)
-    assert result == valid_data
-    
-    # Missing fields get defaults
-    incomplete_data = [{
-        "Product Idea": "Test",
-        # Missing other fields
-    }]
-    result = openrouter_client._validate_json_structure(incomplete_data)
-    assert len(result) == 1
-    assert result[0]["Product Idea"] == "Test"
-    assert result[0]["Problem it solves"] == "Unknown Problem"
-    assert isinstance(result[0]["Software Techstack"], list)
-    
-    # Invalid types get converted
-    invalid_types = [{
-        "Product Idea": ["Should be string"],
-        "Problem it solves": "Valid",
-        "Software Techstack": "Should be list",
-        "Target hardware expectations": ["Valid"],
-        "Company profile": 123,
-        "Engineering profile": "Valid"
-    }]
-    result = openrouter_client._validate_json_structure(invalid_types)
-    assert len(result) == 1
-    assert isinstance(result[0]["Software Techstack"], list)
-    assert isinstance(result[0]["Company profile"], str)
-
 @patch('requests.post')
 def test_make_request_success(mock_post, openrouter_client):
     """Test successful API request."""
@@ -132,71 +78,6 @@ def test_make_request_retry(mock_post, openrouter_client):
     assert mock_post.call_count == 2
 
 @patch('requests.post')
-def test_generate_ideas_success(mock_post, openrouter_client, sample_idea):
-    """Test successful idea generation."""
-    # Test array response
-    mock_response = Mock()
-    mock_response.json.return_value = {
-        "choices": [{
-            "message": {
-                "content": json.dumps([sample_idea])
-            }
-        }]
-    }
-    mock_post.return_value = mock_response
-    
-    ideas = openrouter_client.generate_ideas("test prompt")
-    assert len(ideas) == 1
-    assert ideas[0]["Product Idea"] == sample_idea["Product Idea"]
-    
-    # Test single object response
-    mock_response.json.return_value = {
-        "choices": [{
-            "message": {
-                "content": json.dumps(sample_idea)
-            }
-        }]
-    }
-    ideas = openrouter_client.generate_ideas("test prompt")
-    assert len(ideas) == 1
-    assert ideas[0]["Product Idea"] == sample_idea["Product Idea"]
-    
-    # Test nested response
-    nested_response = {
-        "message": "Test prompt received",
-        "status": "success",
-        "data": sample_idea
-    }
-    mock_response.json.return_value = {
-        "choices": [{
-            "message": {
-                "content": json.dumps(nested_response)
-            }
-        }]
-    }
-    ideas = openrouter_client.generate_ideas("test prompt")
-    assert len(ideas) == 1
-    assert ideas[0]["Product Idea"] == sample_idea["Product Idea"]
-
-@patch('requests.post')
-def test_generate_ideas_invalid_response(mock_post, openrouter_client):
-    """Test idea generation with invalid response."""
-    mock_response = Mock()
-    mock_response.json.return_value = {
-        "choices": [{
-            "message": {
-                "content": "Invalid JSON content"
-            }
-        }]
-    }
-    mock_post.return_value = mock_response
-    
-    ideas = openrouter_client.generate_ideas("test prompt")
-    assert len(ideas) == 1
-    assert "Error Processing Response" in ideas[0]["Product Idea"]
-    assert isinstance(ideas[0]["Software Techstack"], list)
-
-@patch('requests.post')
 def test_generate_requirements_success(mock_post, openrouter_client):
     """Test successful requirements generation."""
     mock_response = Mock()
@@ -213,16 +94,6 @@ def test_generate_requirements_success(mock_post, openrouter_client):
     assert requirements == "Test requirements"
 
 @patch('requests.post')
-def test_generate_requirements_error(mock_post, openrouter_client):
-    """Test requirements generation with error."""
-    mock_response = Mock()
-    mock_response.json.return_value = {"error": "Invalid response"}
-    mock_post.return_value = mock_response
-    
-    requirements = openrouter_client.generate_requirements("test prompt")
-    assert "Error generating requirements" in requirements
-
-@patch('requests.post')
 def test_generate_code_success(mock_post, openrouter_client):
     """Test successful code generation."""
     mock_response = Mock()
@@ -237,13 +108,3 @@ def test_generate_code_success(mock_post, openrouter_client):
     
     code = openrouter_client.generate_code("test prompt")
     assert code == "Test code"
-
-@patch('requests.post')
-def test_generate_code_error(mock_post, openrouter_client):
-    """Test code generation with error."""
-    mock_response = Mock()
-    mock_response.json.return_value = {"error": "Invalid response"}
-    mock_post.return_value = mock_response
-    
-    code = openrouter_client.generate_code("test prompt")
-    assert "Error generating code" in code

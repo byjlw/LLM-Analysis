@@ -49,8 +49,7 @@ class RequirementAnalyzer:
         # Replace the placeholder in the template
         return prompt_template.replace("{THE_IDEA}", idea_str)
         
-    def analyze_idea(self, idea: Dict, prompt_file: str = "prompts/2-idea-to-requirements.txt",
-                    output_dir: str = None) -> str:
+    def analyze_idea(self, idea: Dict, prompt_file: str, output_dir: str = None) -> str:
         """
         Generate requirements for a single product idea.
         
@@ -93,8 +92,7 @@ class RequirementAnalyzer:
                 
         return requirements
         
-    def analyze_all(self, ideas_file: str = "ideas.json",
-                   prompt_file: str = "prompts/2-idea-to-requirements.txt") -> List[str]:
+    def analyze_all(self, ideas_file: str = "ideas.json", prompt_file: str = None) -> List[str]:
         """
         Generate requirements for all ideas in the ideas file.
         
@@ -109,6 +107,9 @@ class RequirementAnalyzer:
             FileNotFoundError: If required files don't exist
             ValueError: If requirement generation fails
         """
+        if prompt_file is None:
+            raise ValueError("prompt_file must be provided")
+
         # Use the ideas file from the current output directory
         if not self.file_handler.current_output_dir:
             logger.error("No output directory has been created")

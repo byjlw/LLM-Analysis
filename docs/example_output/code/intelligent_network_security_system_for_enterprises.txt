@@ -1,0 +1,124 @@
+```cpp
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <json/json.h> // Requires jsoncpp library
+#include <opencv2/opencv.hpp> // Requires OpenCV library
+#include <QtNetwork/QTcpSocket> // Requires Qt library
+#include <sqlite3.h> // Requires SQLite library
+
+// Function to collect network traffic data
+void collectNetworkTrafficData() {
+    QTcpSocket socket;
+    socket.connectToHost("localhost", 8080);
+    if (socket.waitForConnected()) {
+        std::cout << "Connected to localhost:8080" << std::endl;
+        // Collect network traffic data using Qt's QTcpSocket
+    } else {
+        std::cerr << "Failed to connect to localhost:8080" << std::endl;
+    }
+}
+
+// Function to preprocess collected data using OpenCV
+cv::Mat preprocessData(cv::Mat data) {
+    // Preprocess data using OpenCV functions
+    return data;
+}
+
+// Function to train ML model using preprocessed data
+void trainModel(cv::Mat data) {
+    // Train ML model using preprocessed data
+}
+
+// Function to use trained model for real-time threat detection
+void detectThreats(cv::Mat data) {
+    // Use trained model to detect threats in real-time network traffic
+}
+
+// Function to create JSON output
+Json::Value createJsonOutput() {
+    Json::Value jsonData;
+    jsonData["Architecture"]["Data Collection"] = "Collect network traffic data";
+    jsonData["Architecture"]["Data Preprocessing"] = "Preprocess data using OpenCV";
+    jsonData["Architecture"]["Model Training"] = "Train ML model using preprocessed data";
+    jsonData["Architecture"]["Model Inference"] = "Use trained model for real-time threat detection";
+    jsonData["ML Components"]["Threat Detection Model"] = "Develop model using C++ and OpenCV";
+    jsonData["ML Components"]["Model Training Script"] = "Create script to train model";
+    jsonData["ML Components"]["Model Inference Script"] = "Create script to use trained model";
+    jsonData["Implementation"]["Data Collection Module"] = "Develop module using C++ and Qt";
+    jsonData["Implementation"]["Data Preprocessing Module"] = "Develop module using OpenCV";
+    jsonData["Implementation"]["Model Training Module"] = "Develop module to train ML model";
+    jsonData["Implementation"]["Model Inference Module"] = "Develop module to use trained model";
+    jsonData["Local Deployment"] = "Deploy system locally on network devices and security appliances";
+    return jsonData;
+}
+
+// Function to save JSON output to file
+void saveJsonOutput(Json::Value jsonData, const std::string& filename) {
+    Json::StyledWriter writer;
+    std::string jsonString = writer.write(jsonData);
+    std::ofstream file(filename);
+    file << jsonString;
+    file.close();
+}
+
+int main() {
+    // Collect network traffic data
+    collectNetworkTrafficData();
+
+    // Preprocess collected data using OpenCV
+    cv::Mat data = cv::Mat();
+    data = preprocessData(data);
+
+    // Train ML model using preprocessed data
+    trainModel(data);
+
+    // Use trained model for real-time threat detection
+    detectThreats(data);
+
+    // Create JSON output
+    Json::Value jsonData = createJsonOutput();
+
+    // Save JSON output to file
+    saveJsonOutput(jsonData, "output.json");
+
+    return 0;
+}
+```
+
+**SQLite Database Schema**
+```sql
+CREATE TABLE network_traffic (
+    id INTEGER PRIMARY KEY,
+    timestamp TEXT,
+    source_ip TEXT,
+    destination_ip TEXT,
+    protocol TEXT,
+    packet_size INTEGER
+);
+
+CREATE TABLE threats (
+    id INTEGER PRIMARY KEY,
+    timestamp TEXT,
+    threat_type TEXT,
+    threat_level INTEGER,
+    description TEXT
+);
+```
+
+**CMakeLists.txt**
+```cmake
+cmake_minimum_required(VERSION 3.10)
+project(IntelligentNetworkSecuritySystem)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt5 COMPONENTS Network REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(SQLite3 REQUIRED)
+
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} Qt5::Network OpenCV::Core sqlite3)
+```
+Note: This code provides a basic structure for the Intelligent Network Security System and is not a complete implementation. It requires further development and testing to ensure its functionality and performance.

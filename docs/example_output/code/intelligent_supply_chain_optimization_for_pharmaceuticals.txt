@@ -1,0 +1,127 @@
+```r
+# Data Ingestion
+library(RPostgreSQL)
+library(dplyr)
+
+# Connect to PostgreSQL database
+con <- dbConnect(PostgreSQL(), 
+                 dbname = "pharmaceuticals",
+                 host = "localhost",
+                 port = 5432,
+                 user = "username",
+                 password = "password")
+
+# Retrieve historical data on supply chain operations
+data <- dbGetQuery(con, "SELECT * FROM supply_chain_data")
+
+# Close database connection
+dbDisconnect(con)
+
+# Data Preprocessing
+library tidyr)
+library(stringr)
+
+# Clean and preprocess the data
+data_clean <- data %>%
+  # Handle missing values
+  mutate(inventory_levels = ifelse(is.na(inventory_levels), 0, inventory_levels),
+         demand = ifelse(is.na(demand), 0, demand),
+         shipment_information = ifelse(is.na(shipment_information), 0, shipment_information)) %>%
+  # Normalize data
+  mutate(inventory_levels = inventory_levels / max(inventory_levels),
+         demand = demand / max(demand),
+         shipment_information = shipment_information / max(shipment_information))
+
+# Split data into training and testing sets
+set.seed(123)
+train_index <- sample(nrow(data_clean), 0.8*nrow(data_clean))
+train_data <- data_clean[train_index, ]
+test_data <- data_clean[-train_index, ]
+
+# Model Training
+library(forecast)
+
+# Train ARIMA model on training data
+arima_model <- auto.arima(train_data$demand, ic = "bic")
+
+# Tune hyperparameters to optimize model performance
+arima_model_tuned <- Arima(train_data$demand, order = c(1,1,1), 
+                            seasonal = list(order = c(1,1,1), period = 12))
+
+# Model Deployment
+library(shiny)
+
+# Create Shiny web-based interface
+ui <- fluidPage(
+  titlePanel("Pharmaceutical Supply Chain Optimization"),
+  sidebarLayout(
+    sidebarPanel(
+      actionButton("predict", "Make Predictions")
+    ),
+    mainPanel(
+      tableOutput("predictions")
+    )
+  )
+)
+
+server <- function(input, output) {
+  predictions <- eventReactive(input$predict, {
+    # Make predictions on new data
+    new_data <- data.frame(demand = rnorm(10, mean = mean(train_data$demand), sd = sd(train_data$demand)))
+    predictions <- forecast(arima_model_tuned, new_data)
+    return(predictions)
+  })
+  
+  output$predictions <- renderTable({
+    predictions()
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
+# Inference
+library(tableau)
+
+# Create Tableau data visualization dashboard
+tableau_dashboard <- tableau("pharmaceuticals", 
+                             data = data_clean, 
+                             predictions = predictions())
+
+# Display model's predictions and recommendations
+tableau_dashboard$display()
+```
+
+```sql
+-- Create PostgreSQL database and table
+CREATE DATABASE pharmaceuticals;
+CREATE TABLE supply_chain_data (
+  id SERIAL PRIMARY KEY,
+  inventory_levels NUMERIC,
+  demand NUMERIC,
+  shipment_information NUMERIC
+);
+
+-- Insert sample data into table
+INSERT INTO supply_chain_data (inventory_levels, demand, shipment_information)
+VALUES
+  (100, 50, 20),
+  (120, 60, 25),
+  (110, 55, 22),
+  (130, 65, 28),
+  (105, 52, 21);
+```
+
+```r
+# Performance Metrics Report
+library(caret)
+
+# Calculate performance metrics
+accuracy <- mean(predictions == test_data$demand)
+precision <- sum(predictions == test_data$demand & predictions > 0) / sum(predictions > 0)
+recall <- sum(predictions == test_data$demand & test_data$demand > 0) / sum(test_data$demand > 0)
+
+# Print performance metrics report
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Recall:", recall))
+```

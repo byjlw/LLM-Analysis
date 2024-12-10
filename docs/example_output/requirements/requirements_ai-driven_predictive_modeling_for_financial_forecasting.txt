@@ -1,0 +1,62 @@
+To implement the AI-driven Predictive Modeling for Financial Forecasting, I will provide instructions for the engineer to build the core functionality. Here is the outline:
+
+```json
+{
+  "Project Overview": {
+    "Product Idea": "AI-driven Predictive Modeling for Financial Forecasting",
+    "Problem it solves": "Improves financial forecasting and reduces risk"
+  },
+  "Architecture": {
+    "Components": [
+      "Data Ingestion",
+      "Data Preprocessing",
+      "Model Training",
+      "Model Inference"
+    ],
+    "Techstack": [
+      "R",
+      "Shiny",
+      "PostgreSQL",
+      "Tableau"
+    ]
+  },
+  "Instructions": {
+    "Data Ingestion": {
+      "Task": "Connect to PostgreSQL database and retrieve financial data",
+      "Requirements": [
+        "Use R libraries to connect to PostgreSQL",
+        "Retrieve relevant financial data"
+      ]
+    },
+    "Data Preprocessing": {
+      "Task": "Clean and preprocess financial data for modeling",
+      "Requirements": [
+        "Handle missing values",
+        "Normalize data",
+        "Transform data as necessary"
+      ]
+    },
+    "Model Training": {
+      "Task": "Train a predictive model using R",
+      "Requirements": [
+        "Choose a suitable algorithm (e.g. ARIMA, LSTM, etc.)",
+        "Train the model using the preprocessed data"
+      ]
+    },
+    "Model Inference": {
+      "Task": "Use the trained model to make predictions on new data",
+      "Requirements": [
+        "Use the trained model to make predictions",
+        "Output predictions in a suitable format"
+      ]
+    }
+  },
+  "Deliverables": {
+    "Code": "R code for data ingestion, preprocessing, model training, and inference",
+    "Model": "Trained predictive model",
+    "Tests": "Unit tests and integration tests to verify functionality"
+  }
+}
+```
+
+The engineer should focus on building the core functionality of the predictive modeling pipeline, using R and the specified techstack. The instructions outline the key components and tasks required to implement the project. The deliverables include the R code, trained model, and tests to verify the functionality.

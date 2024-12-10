@@ -1,0 +1,70 @@
+Here is the response in valid JSON format:
+
+```
+{
+  "outline": {
+    "architecture": {
+      "components": [
+        "Data Preprocessing",
+        "Model Training",
+        "Model Inference",
+        "Recommendation Generation"
+      ],
+      "dependencies": [
+        "Ruby on Rails",
+        "PostgreSQL",
+        "Vue.js",
+        "Redis"
+      ]
+    },
+    "portions_to_be_built": [
+      "Data Preprocessing Pipeline",
+      "Recommendation Model",
+      "Inference Engine"
+    ]
+  },
+  "instructions": {
+    "data_preprocessing": {
+      "description": "Preprocess user interaction data and product information",
+      "tasks": [
+        "Collect user interaction data (e.g. clicks, purchases, searches)",
+        "Collect product information (e.g. categories, descriptions, prices)",
+        "Preprocess data into suitable format for model training"
+      ]
+    },
+    "model_training": {
+      "description": "Train a recommendation model using preprocessed data",
+      "tasks": [
+        "Choose a suitable algorithm (e.g. collaborative filtering, content-based filtering)",
+        "Train the model using preprocessed data",
+        "Evaluate model performance using metrics (e.g. precision, recall, F1-score)"
+      ]
+    },
+    "inference_engine": {
+      "description": "Build an inference engine to generate recommendations",
+      "tasks": [
+        "Use trained model to generate recommendations for users",
+        "Integrate inference engine with Ruby on Rails backend",
+        "Use Redis for caching and improving performance"
+      ]
+    }
+  },
+  "requirements": {
+    "model": {
+      "type": "Collaborative Filtering",
+      "library": "TensorFlow or PyTorch"
+    },
+    "testing": {
+      "metrics": [
+        "Precision",
+        "Recall",
+        "F1-score"
+      ],
+      "datasets": [
+        "Training data",
+        "Testing data"
+      ]
+    }
+  }
+}
+```

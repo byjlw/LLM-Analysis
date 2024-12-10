@@ -4,7 +4,7 @@
 This project analyzes the code returned by LLM models to deterimine which frameworks are are being used by coding request
 
 ## 2. Technical Details and Architecture
-
+![Design Digram](design.png)
 
 ### 2.1 Details
 * python 3.10+

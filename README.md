@@ -74,29 +74,72 @@ By default, the tool creates a timestamped directory for each run. You can speci
 llm-coding-analysis --working-dir my-project
 ```
 
-## (optional) Configuration
-You can use a config file for values as opposed to passing items on the command line
-1. Create a copy of the default configuration:
+## Configuration Options
+
+### Command Line Arguments
+
+All available command line arguments:
+
+- `--api-key`: OpenRouter API key (can also be set via OPENROUTER_API_KEY environment variable)
+- `--output-dir`: Output directory (default: 'output')
+- `--working-dir`: Working directory name (defaults to timestamp)
+- `--num-ideas`: Number of ideas to generate (default: 15)
+- `--model`: Model to use for generation (default: 'meta-llama/llama-3.3-70b-instruct')
+- `--log-level`: Logging level (choices: DEBUG, INFO, WARNING, ERROR, CRITICAL; default: INFO)
+- `--start-step`: Step to start from (1/ideas, 2/requirements, 3/code, 4/dependencies)
+
+### Configuration File
+
+The tool supports configuration through a JSON file. The tool looks for configuration files in the following order:
+
+1. Custom config file path specified via command line (`--config path/to/config.json`)
+2. `config.json` in the current working directory
+3. Default config at `src/config/default_config.json`
+
+To create a custom config file:
+
 ```bash
+# Copy the default config to your current directory
 cp src/config/default_config.json config.json
+
+# Edit config.json with your settings
 ```
 
-2. Edit the configuration file with your settings:
+Available configuration options:
+
 ```json
 {
     "openrouter": {
-        "api_key": "your-api-key-here",
-        "default_model": "anthropic/claude-2",
-        "timeout": 60,
-        "max_retries": 3
+        "api_key": "",                              // Your OpenRouter API key
+        "default_model": "openai/gpt-4o-2024-11-20", // Default LLM model to use
+        "timeout": 120,                             // API request timeout in seconds
+        "max_retries": 3                            // Maximum number of API request retries
     },
     "output": {
-        "base_dir": "output",
-        "ideas_filename": "ideas.json",
-        "dependencies_filename": "dependencies.json"
+        "base_dir": "output",                       // Base directory for output files
+        "ideas_filename": "ideas.json",             // Filename for generated ideas
+        "dependencies_filename": "dependencies.json" // Filename for dependency analysis
+    },
+    "prompts": {
+        "ideas": "prompts/1-spawn_ideas.txt",           // Prompt file for idea generation
+        "requirements": "prompts/2-idea-to-requirements.txt", // Prompt for requirements generation
+        "code": "prompts/3-write-code.txt",             // Prompt for code generation
+        "dependencies": "prompts/4-collect-dependencies.txt", // Prompt for dependency collection
+        "error_format": "prompts/e1-wrong_format.txt"   // Prompt for format error handling
+    },
+    "logging": {
+        "level": "DEBUG",                           // Logging level
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s" // Log message format
     }
 }
 ```
+
+Configuration precedence:
+1. Command line arguments
+2. Environment variables (for API key)
+3. Custom config file specified via --config
+4. config.json in current working directory
+5. Default config file (src/config/default_config.json)
 
 ## Output Structure
 

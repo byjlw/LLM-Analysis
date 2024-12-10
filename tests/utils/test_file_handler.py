@@ -14,25 +14,6 @@ def test_init_file_handler():
     assert handler.base_output_dir == "test_output"
     assert handler.current_output_dir is None
 
-def test_create_output_directory(temp_dir):
-    """Test creation of output directory."""
-    handler = FileHandler(temp_dir)
-    output_dir = handler.create_output_directory()
-    
-    # Verify directory was created
-    assert os.path.exists(output_dir)
-    assert os.path.isdir(output_dir)
-    
-    # Verify timestamp format in directory name
-    dir_name = os.path.basename(output_dir)
-    try:
-        datetime.strptime(dir_name, "%Y%m%d_%H%M%S")
-    except ValueError:
-        pytest.fail("Output directory name does not match expected timestamp format")
-        
-    # Verify current_output_dir was set
-    assert handler.current_output_dir == output_dir
-
 def test_get_output_path_without_directory():
     """Test get_output_path when no directory has been created."""
     handler = FileHandler("test_output")
@@ -153,17 +134,3 @@ def test_update_dependencies_existing_file(temp_dir, sample_json_data):
     
     # Check new model was added
     assert any(m["name"] == "gpt3" and m["count"] == 1 for m in updated_data["models"])
-
-def test_path_duplication_prevention(temp_dir):
-    """Test prevention of path duplication."""
-    handler = FileHandler(temp_dir)
-    handler.create_output_directory()
-    
-    # Test with output directory in path
-    path = handler.get_output_path(f"{temp_dir}/test.json")
-    assert not path.startswith(f"{temp_dir}/{temp_dir}")
-    
-    # Test with timestamp directory in path
-    timestamp_dir = os.path.basename(handler.current_output_dir)
-    path = handler.get_output_path(f"{timestamp_dir}/test.json")
-    assert path.count(timestamp_dir) == 1

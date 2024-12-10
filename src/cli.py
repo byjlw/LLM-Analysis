@@ -63,30 +63,38 @@ def load_config(config_path=None):
     Load configuration from JSON file.
     
     Args:
-        config_path: Optional path to config file. If not provided, uses default.
+        config_path: Optional path to config file. If not provided, tries config.json
+                    then falls back to default_config.json
         
     Returns:
         Dictionary containing configuration
+        
+    Raises:
+        FileNotFoundError: If neither config file exists
+        ValueError: If config file is invalid
     """
-    if not config_path:
-        config_path = os.path.join(os.path.dirname(__file__), 'config', 'default_config.json')
-        
-    if not os.path.exists(config_path):
-        logger.warning(f"Config file not found at {config_path}, using defaults")
-        return {
-            "openrouter": {
-                "api_key": "",
-                "default_model": "meta-llama/llama-3.3-70b-instruct",
-                "timeout": 120,
-                "max_retries": 3
-            },
-            "output": {
-                "base_dir": "output"
-            }
-        }
-        
-    with open(config_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    if config_path:
+        # If specific path provided, use only that
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+        logger.info(f"Loading config from: {config_path}")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+            
+    # Try config.json in current directory first
+    if os.path.exists('config.json'):
+        logger.info("Loading config from config.json")
+        with open('config.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+            
+    # Fall back to default_config.json
+    default_config = os.path.join(os.path.dirname(__file__), 'config', 'default_config.json')
+    if os.path.exists(default_config):
+        logger.info("Loading default config")
+        with open(default_config, 'r', encoding='utf-8') as f:
+            return json.load(f)
+            
+    raise FileNotFoundError("No config file found. Create config.json or ensure default_config.json exists.")
 
 def parse_args():
     """Parse command line arguments."""
@@ -210,7 +218,11 @@ def main():
         if start_step <= ProcessStep.IDEAS:
             logger.info("Generating ideas...")
             idea_generator = IdeaGenerator(file_handler, openrouter_client)
-            ideas_file = idea_generator.generate(args.num_ideas)
+            ideas_file = idea_generator.generate(
+                prompt_file=config["prompts"]["ideas"],
+                output_file=config["output"]["ideas_filename"],
+                num_ideas=args.num_ideas
+            )
             if not ideas_file:
                 logger.error("Failed to generate ideas")
                 sys.exit(1)
@@ -219,7 +231,9 @@ def main():
         if start_step <= ProcessStep.REQUIREMENTS:
             logger.info("Generating requirements...")
             requirement_analyzer = RequirementAnalyzer(openrouter_client, file_handler)
-            requirements = requirement_analyzer.analyze_all()
+            requirements = requirement_analyzer.analyze_all(
+                prompt_file=config["prompts"]["requirements"]
+            )
             if not requirements:
                 logger.error("Failed to generate requirements")
                 sys.exit(1)
@@ -229,15 +243,19 @@ def main():
         if start_step <= ProcessStep.CODE:
             logger.info("Generating code...")
             code_generator = CodeGenerator(file_handler, openrouter_client)
-            if not code_generator.generate():
+            if not code_generator.generate(
+                prompt_file=config["prompts"]["code"]
+            ):
                 logger.error("Failed to generate code")
                 sys.exit(1)
         
         # Analyze dependencies if starting from step 4 or earlier
         if start_step <= ProcessStep.DEPENDENCIES:
             logger.info("Analyzing dependencies...")
-            dependency_collector = DependencyCollector(file_handler, openrouter_client)  # Pass openrouter_client
-            dependencies_file = dependency_collector.collect_all()
+            dependency_collector = DependencyCollector(file_handler, openrouter_client)
+            dependencies_file = dependency_collector.collect_all(
+                prompt_file=config["prompts"]["dependencies"]
+            )
             if not dependencies_file:
                 logger.error("Failed to analyze dependencies")
                 sys.exit(1)

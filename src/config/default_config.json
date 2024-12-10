@@ -10,6 +10,13 @@
         "ideas_filename": "ideas.json",
         "dependencies_filename": "dependencies.json"
     },
+    "prompts": {
+        "ideas": "prompts/1-spawn_ideas.txt",
+        "requirements": "prompts/2-idea-to-requirements.txt",
+        "code": "prompts/3-write-code.txt",
+        "dependencies": "prompts/4-collect-dependencies.txt",
+        "error_format": "prompts/e1-wrong_format.txt"
+    },
     "logging": {
         "level": "DEBUG",
         "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

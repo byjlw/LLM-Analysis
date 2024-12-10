@@ -92,11 +92,13 @@ class IdeaGenerator:
                 
         return True
         
-    def generate(self, num_ideas: int = 15) -> str:
+    def generate(self, prompt_file: str, output_file: str, num_ideas: int = 15) -> str:
         """
         Generate product ideas using the specified prompt file.
         
         Args:
+            prompt_file: Path to the prompt template file
+            output_file: Name of the output file to save ideas
             num_ideas: Number of ideas to generate
             
         Returns:
@@ -106,9 +108,6 @@ class IdeaGenerator:
             FileNotFoundError: If the prompt file doesn't exist
             ValueError: If idea generation or validation fails
         """
-        prompt_file = "prompts/1-spawn_ideas.txt"
-        output_file = "ideas.json"
-        
         # Read the prompt file
         if not os.path.exists(prompt_file):
             logger.error(f"Prompt file not found: {prompt_file}")

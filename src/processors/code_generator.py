@@ -73,15 +73,26 @@ class CodeGenerator:
             logger.error(f"Error finding matching idea: {str(e)}")
             return None
 
-    def _generate_code_for_idea(self, idea: Dict, requirements_path: str) -> bool:
+    def _generate_code_for_idea(self, idea: Dict, requirements_path: str, prompt_file: str) -> bool:
         """Generate code for a single idea."""
         try:
             # Read requirements
             with open(requirements_path, 'r', encoding='utf-8') as f:
                 requirements = f.read()
+
+            # Read prompt template
+            if not os.path.exists(prompt_file):
+                logger.error(f"Prompt file not found: {prompt_file}")
+                raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
+
+            with open(prompt_file, 'r', encoding='utf-8') as f:
+                prompt = f.read()
+
+            # Combine prompt with requirements
+            full_prompt = f"{prompt}\n{requirements}"
             
             # Generate code using OpenRouter
-            code = self.openrouter_client.generate_code(requirements)
+            code = self.openrouter_client.generate_code(full_prompt)
             if not code:
                 logger.error("Failed to generate code")
                 return False
@@ -104,17 +115,24 @@ class CodeGenerator:
             logger.error(f"Error generating code: {str(e)}")
             return False
 
-    def generate(self, ideas_file: Optional[str] = None) -> bool:
+    def generate(self, prompt_file: str, ideas_file: Optional[str] = None) -> bool:
         """
         Generate code based on requirements.
         
         Args:
+            prompt_file: Path to the prompt template file
             ideas_file: Optional path to ideas JSON file. If not provided,
                        will use default path in current output directory.
         
         Returns:
             bool: True if code generation was successful, False otherwise
+            
+        Raises:
+            ValueError: If prompt_file is not provided
         """
+        if prompt_file is None:
+            raise ValueError("prompt_file must be provided")
+
         try:
             # Get ideas file path
             if ideas_file is None:
@@ -152,7 +170,7 @@ class CodeGenerator:
                     
                     # Generate code
                     requirements_path = os.path.join(requirements_dir, filename)
-                    if not self._generate_code_for_idea(idea, requirements_path):
+                    if not self._generate_code_for_idea(idea, requirements_path, prompt_file):
                         success = False
             
             return success

@@ -1,0 +1,155 @@
+```python
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from prophet import Prophet
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+# Task 1: Data Ingestion
+def ingest_data(file_path):
+    """
+    Collect and integrate data from IoT sensors and building automation systems.
+    
+    Parameters:
+    file_path (str): Path to the CSV file containing sensor readings.
+    
+    Returns:
+    data (pd.DataFrame): Cleaned and formatted data for training.
+    """
+    data = pd.read_csv(file_path)
+    data = data.dropna()  # Remove rows with missing values
+    return data
+
+# Task 2: Data Preprocessing
+def preprocess_data(data):
+    """
+    Preprocess data for training (handle missing values, normalize, etc.).
+    
+    Parameters:
+    data (pd.DataFrame): Cleaned data from Task 1.
+    
+    Returns:
+    preprocessed_data (pd.DataFrame): Preprocessed data for training.
+    """
+    scaler = MinMaxScaler()
+    preprocessed_data = pd.DataFrame(scaler.fit_transform(data), columns=data.columns)
+    return preprocessed_data
+
+# Task 3: Model Training
+def train_model(preprocessed_data):
+    """
+    Train a machine learning model to predict energy consumption patterns.
+    
+    Parameters:
+    preprocessed_data (pd.DataFrame): Preprocessed data from Task 2.
+    
+    Returns:
+    model (Sequential or Prophet): Trained model.
+    """
+    # Split data into training and testing sets
+    train_data, test_data = train_test_split(preprocessed_data, test_size=0.2, random_state=42)
+    
+    # Create and compile LSTM model
+    model = Sequential()
+    model.add(LSTM(units=50, return_sequences=True, input_shape=(train_data.shape[1], 1)))
+    model.add(LSTM(units=50))
+    model.add(Dense(units=1))
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    
+    # Alternatively, use Prophet for regression
+    # model = Prophet()
+    # model.fit(train_data)
+    
+    # Train the model
+    model.fit(train_data, epochs=50, batch_size=32, verbose=2)
+    return model
+
+# Task 4: Model Inference
+def make_prediction(model, new_data):
+    """
+    Use the trained model to make predictions on new, unseen data.
+    
+    Parameters:
+    model (Sequential or Prophet): Trained model from Task 3.
+    new_data (pd.DataFrame): New sensor readings.
+    
+    Returns:
+    prediction (float): Predicted energy consumption.
+    """
+    # Make prediction using LSTM model
+    prediction = model.predict(new_data)
+    
+    # Alternatively, use Prophet for regression
+    # future = model.make_future_dataframe(periods=len(new_data))
+    # prediction = model.predict(future)
+    return prediction
+
+# Task 5: Model Deployment
+def deploy_model(model):
+    """
+    Deploy the trained model in a local environment for inference.
+    
+    Parameters:
+    model (Sequential or Prophet): Trained model from Task 3.
+    
+    Returns:
+    deployed_model (Sequential or Prophet): Deployed model.
+    """
+    # Save the trained model to a file
+    model.save('energy_consumption_model.h5')
+    deployed_model = model
+    return deployed_model
+
+# Testing and Evaluation
+def evaluate_model(model, test_data):
+    """
+    Evaluate the performance of the trained model.
+    
+    Parameters:
+    model (Sequential or Prophet): Trained model from Task 3.
+    test_data (pd.DataFrame): Testing data.
+    
+    Returns:
+    mae (float): Mean Absolute Error (MAE).
+    mse (float): Mean Squared Error (MSE).
+    """
+    # Make predictions on test data
+    predictions = model.predict(test_data)
+    
+    # Calculate MAE and MSE
+    mae = mean_absolute_error(test_data, predictions)
+    mse = mean_squared_error(test_data, predictions)
+    return mae, mse
+
+# Main function
+def main():
+    # Ingest data
+    data = ingest_data('energy_consumption_data.csv')
+    
+    # Preprocess data
+    preprocessed_data = preprocess_data(data)
+    
+    # Train model
+    model = train_model(preprocessed_data)
+    
+    # Make prediction
+    new_data = pd.DataFrame({'temperature': [20], 'humidity': [50]})
+    prediction = make_prediction(model, new_data)
+    print('Predicted energy consumption:', prediction)
+    
+    # Deploy model
+    deployed_model = deploy_model(model)
+    
+    # Evaluate model
+    test_data = pd.DataFrame({'temperature': [20], 'humidity': [50]})
+    mae, mse = evaluate_model(model, test_data)
+    print('Mean Absolute Error (MAE):', mae)
+    print('Mean Squared Error (MSE):', mse)
+
+if __name__ == '__main__':
+    main()
+```

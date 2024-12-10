@@ -1,0 +1,36 @@
+### Intelligent Customer Service Platform for Retail: AI/ML Implementation Instructions
+
+#### Outline
+1. **Architecture Overview**
+   - The AI/ML component will be integrated into the existing Flask backend.
+   - PostgreSQL will store customer interactions and feedback for model training.
+   - Angular frontend will display recommendations and feedback forms.
+
+2. **Model Selection**
+   - Implement a Natural Language Processing (NLP) model to analyze customer queries and provide relevant responses.
+   - Choose a suitable pre-trained model (e.g., BERT, RoBERTa) for text classification tasks.
+
+3. **Training**
+   - Collect and preprocess customer interaction data from PostgreSQL.
+   - Train the NLP model locally using the collected data to classify queries into predefined categories.
+
+4. **Inference**
+   - Integrate the trained model into the Flask backend to analyze incoming customer queries.
+   - Use the model to predict the query category and provide a relevant response.
+
+5. **Testing**
+   - Develop unit tests to verify the model's accuracy in classifying customer queries.
+   - Implement integration tests to ensure seamless interaction between the model and the Flask backend.
+
+#### Detailed Instructions for the Engineer
+- **Step 1:** Set up the development environment with Python, necessary libraries (e.g., `transformers`, `torch`), and the existing Flask project structure.
+- **Step 2:** Design a database schema in PostgreSQL to store customer interactions, including queries and feedback.
+- **Step 3:** Implement data preprocessing scripts to clean and format the collected data for model training.
+- **Step 4:** Train a pre-selected NLP model using the preprocessed data, focusing on text classification tasks.
+- **Step 5:** Integrate the trained model into the Flask backend to analyze incoming customer queries and provide relevant responses.
+- **Step 6:** Develop and run unit tests and integration tests to verify the model's performance and integration.
+
+#### Notes
+- Ensure all development and testing are done locally without relying on external AI/ML services.
+- Use Python for all AI/ML related tasks due to the company's tech stack.
+- Keep the solution simple and focused on core functionality.

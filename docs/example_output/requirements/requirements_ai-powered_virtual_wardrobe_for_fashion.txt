@@ -1,0 +1,42 @@
+**AI-Powered Virtual Wardrobe Instructions**
+```json
+{
+  "Product Idea": "AI-powered Virtual Wardrobe for Fashion",
+  "Problem it solves": "Improves fashion shopping experience and reduces returns",
+  "Software Techstack": ["Python", "Django", "PostgreSQL", "Flutter"],
+  "Target hardware": ["Mobile devices", "Web browsers"],
+  "Company profile": "Fashion e-commerce",
+  "Engineering profile": "Mobile and web developers",
+  "Instructions": {
+    "Objective": "Implement AI-powered Virtual Wardrobe for Fashion",
+    "Architecture": {
+      "Components": [
+        "Image Processing",
+        "Machine Learning Model",
+        "Data Storage"
+      ],
+      "Flow": [
+        "User uploads image of clothing item",
+        "Image processing extracts features",
+        "Machine Learning Model predicts matching items",
+        "Results stored in PostgreSQL database"
+      ]
+    },
+    "AI/ML Portions": {
+      "Image Processing": {
+        "Library": "OpenCV",
+        "Functionality": "Extract features from clothing images"
+      },
+      "Machine Learning Model": {
+        "Type": "Convolutional Neural Network (CNN)",
+        "Functionality": "Predict matching clothing items based on extracted features"
+      }
+    },
+    "Local Inference/Training": {
+      "Environment": "Python",
+      "Requirements": ["TensorFlow", "Keras"]
+    }
+  }
+}
+```
+Note: The instructions focus on the AI/ML portions of the project, outlining the architecture, components, and flow. The Image Processing and Machine Learning Model components are specified, along with the required libraries and functionality. The local inference/training environment is set to Python, with requirements for TensorFlow and Keras.

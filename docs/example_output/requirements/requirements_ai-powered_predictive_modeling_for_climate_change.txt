@@ -1,0 +1,39 @@
+Here are the instructions for the engineer to implement the AI-powered Predictive Modeling for Climate Change:
+
+**Outline**
+
+1. **Data Preparation**
+	* Collect and preprocess climate-related data from various sources
+	* Store data in PostgreSQL database
+2. **Model Training**
+	* Use R to train a machine learning model for climate change prediction
+	* Utilize a suitable algorithm (e.g. linear regression, decision trees, random forests)
+3. **Model Deployment**
+	* Create a Shiny app to deploy the trained model
+	* Allow users to input parameters and generate predictions
+4. **Inference and Visualization**
+	* Use the trained model to make predictions on new data
+	* Visualize predictions using Tableau
+
+**Architecture**
+
+* Data Warehouse (PostgreSQL): stores climate-related data
+* Data Engineering (R): trains machine learning model
+* Shiny App: deploys trained model and generates predictions
+* Tableau: visualizes predictions
+
+**Instructions for Engineer**
+
+1. Prepare the data by collecting and preprocessing climate-related data from various sources.
+2. Train a machine learning model using R, utilizing a suitable algorithm for climate change prediction.
+3. Deploy the trained model using Shiny, allowing users to input parameters and generate predictions.
+4. Use the trained model to make predictions on new data and visualize the results using Tableau.
+5. Ensure the model is trained and deployed locally, without relying on AI or ML services.
+
+**Requirements**
+
+* R version: latest
+* Shiny version: latest
+* PostgreSQL version: latest
+* Tableau version: latest
+* Data: climate-related data (e.g. temperature, precipitation, sea level rise)

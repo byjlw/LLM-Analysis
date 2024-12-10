@@ -1,0 +1,103 @@
+```cpp
+// Data Preprocessing Module
+#include <opencv2/opencv.hpp>
+#include <iostream>
+
+cv::Mat preprocessImage(const cv::Mat& image) {
+    // Resize image
+    cv::Mat resizedImage;
+    cv::resize(image, resizedImage, cv::Size(256, 256));
+
+    // Normalize image
+    cv::Mat normalizedImage;
+    resizedImage.convertTo(normalizedImage, CV_32F, 1.0 / 255.0);
+
+    // Enhance image
+    cv::Mat enhancedImage;
+    cv::GaussianBlur(normalizedImage, enhancedImage, cv::Size(5, 5), 0);
+
+    return enhancedImage;
+}
+
+// Model Training Module
+#include <opencv2/dnn.hpp>
+#include <iostream>
+
+cv::dnn::Net trainModel(const std::vector<cv::Mat>& images, const std::vector<int>& labels) {
+    // Define CNN architecture
+    cv::dnn::Net net = cv::dnn::readNetFromCaffe("model.prototxt", "model.caffemodel");
+
+    // Prepare training data
+    cv::Mat trainingData;
+    cv::vconcat(images, trainingData);
+
+    // Train model
+    net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    cv::Ptr<cv::dnn::Layer> layer = net.getLayer("loss");
+    cv::Mat loss = cv::Mat::zeros(1, 1, CV_32F);
+    layer->inputParams[0].set(loss);
+    net.forward();
+
+    return net;
+}
+
+// Model Inference Module
+cv::Mat classifyImage(const cv::Mat& image, const cv::dnn::Net& model) {
+    // Preprocess image
+    cv::Mat preprocessedImage = preprocessImage(image);
+
+    // Classify image
+    cv::Mat output = model.forward(preprocessedImage);
+
+    return output;
+}
+
+// Data Storage Module
+#include <sqlite3.h>
+#include <iostream>
+
+void storeData(const cv::Mat& image, const cv::Mat& classificationResult) {
+    // Connect to SQLite database
+    sqlite3* db;
+    sqlite3_open("quality_inspection.db", &db);
+
+    // Create table
+    const char* sql = "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY, image BLOB, classification_result BLOB)";
+    sqlite3_exec(db, sql, nullptr, nullptr, nullptr);
+
+    // Insert data
+    sqlite3_stmt* stmt;
+    sql = "INSERT INTO images (image, classification_result) VALUES (?,?)";
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_blob(stmt, 1, image.data, image.total() * image.elemSize(), SQLITE_STATIC);
+    sqlite3_bind_blob(stmt, 2, classificationResult.data, classificationResult.total() * classificationResult.elemSize(), SQLITE_STATIC);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    // Close database connection
+    sqlite3_close(db);
+}
+
+int main() {
+    // Load images and labels
+    std::vector<cv::Mat> images;
+    std::vector<int> labels;
+    //...
+
+    // Train model
+    cv::dnn::Net model = trainModel(images, labels);
+
+    // Load image to classify
+    cv::Mat image;
+    //...
+
+    // Classify image
+    cv::Mat classificationResult = classifyImage(image, model);
+
+    // Store data
+    storeData(image, classificationResult);
+
+    return 0;
+}
+```

@@ -1,0 +1,43 @@
+Here are the instructions for the engineer:
+
+**Automated Quality Control for Manufacturing using Computer Vision**
+
+**Outline**
+
+1. **Architecture**
+	* Industrial cameras will capture images of products on the production line
+	* Machine vision systems will process these images using OpenCV
+	* C++ and Qt will be used for building the application
+	* SQLite will be used for storing and retrieving product quality data
+2. **Core Functionality**
+	* Image acquisition and preprocessing
+	* Defect detection using computer vision algorithms
+	* Classification of defects (e.g. scratch, dent, etc.)
+	* Decision-making for product quality control (accept/reject)
+3. **AI/ML Portions**
+	* Train a convolutional neural network (CNN) for defect detection and classification
+	* Use OpenCV for image processing and feature extraction
+	* Implement a classification algorithm (e.g. SVM, k-NN) for defect classification
+
+**Instructions for Engineer**
+
+1. **Image Acquisition and Preprocessing**
+	* Use OpenCV to capture images from industrial cameras
+	* Apply necessary image preprocessing techniques (e.g. resizing, thresholding, etc.)
+2. **Defect Detection and Classification**
+	* Train a CNN using a dataset of images with labeled defects
+	* Use OpenCV to extract features from images and feed into the CNN
+	* Implement a classification algorithm to classify defects
+3. **Decision-Making for Product Quality Control**
+	* Use the output of the classification algorithm to decide whether to accept or reject a product
+	* Store the decision in SQLite database for future reference
+4. **Testing and Validation**
+	* Test the system using a dataset of images with known defects
+	* Validate the accuracy of the defect detection and classification algorithm
+
+**Notes**
+
+* Use C++ and Qt for building the application
+* Use OpenCV for computer vision tasks
+* Use SQLite for storing and retrieving product quality data
+* Train and test the CNN using a local dataset of images with labeled defects

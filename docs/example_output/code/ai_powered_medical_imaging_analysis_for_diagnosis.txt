@@ -1,0 +1,154 @@
+```python
+# Import required libraries
+import os
+import cv2
+import numpy as np
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Dropout, Concatenate
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import psycopg2
+
+# Data Preprocessing Module
+def preprocess_image(image):
+    # Convert image to grayscale
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Apply Gaussian blur to reduce noise
+    image = cv2.GaussianBlur(image, (5, 5), 0)
+    # Resize image to (256, 256)
+    image = cv2.resize(image, (256, 256))
+    return image
+
+def augment_image(image):
+    # Rotate image by 90 degrees
+    rotated_image = np.rot90(image, 1)
+    # Flip image horizontally
+    flipped_image = np.fliplr(image)
+    return rotated_image, flipped_image
+
+# Machine Learning Model
+def create_model(input_shape):
+    inputs = Input(input_shape)
+    conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
+    conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
+    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
+    
+    conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
+    conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
+    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
+    
+    conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(pool2)
+    conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(conv3)
+    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
+    
+    conv4 = Conv2D(256, (3, 3), activation='relu', padding='same')(pool3)
+    conv4 = Conv2D(256, (3, 3), activation='relu', padding='same')(conv4)
+    drop4 = Dropout(0.5)(conv4)
+    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
+    
+    conv5 = Conv2D(512, (2, 2), activation='relu', padding='same')(pool4)
+    conv5 = Conv2D(512, (2, 2), activation='relu', padding='same')(conv5)
+    drop5 = Dropout(0.5)(conv5)
+    
+    up6 = Conv2D(256, (2, 2), activation='relu', padding='same')(UpSampling2D(size=(2, 2))(drop5))
+    merge6 = Concatenate()([drop4, up6])
+    conv6 = Conv2D(256, (3, 3), activation='relu', padding='same')(merge6)
+    conv6 = Conv2D(256, (3, 3), activation='relu', padding='same')(conv6)
+    
+    up7 = Conv2D(128, (2, 2), activation='relu', padding='same')(UpSampling2D(size=(2, 2))(conv6))
+    merge7 = Concatenate()([conv3, up7])
+    conv7 = Conv2D(128, (3, 3), activation='relu', padding='same')(merge7)
+    conv7 = Conv2D(128, (3, 3), activation='relu', padding='same')(conv7)
+    
+    up8 = Conv2D(64, (2, 2), activation='relu', padding='same')(UpSampling2D(size=(2, 2))(conv7))
+    merge8 = Concatenate()([conv2, up8])
+    conv8 = Conv2D(64, (3, 3), activation='relu', padding='same')(merge8)
+    conv8 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv8)
+    
+    up9 = Conv2D(32, (2, 2), activation='relu', padding='same')(UpSampling2D(size=(2, 2))(conv8))
+    merge9 = Concatenate()([conv1, up9])
+    conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(merge9)
+    conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv9)
+    
+    outputs = Conv2D(1, (1, 1), activation='sigmoid')(conv9)
+    model = Model(inputs=[inputs], outputs=[outputs])
+    return model
+
+# Model Inference Module
+def predict_model(model, image):
+    image = np.expand_dims(image, axis=0)
+    image = np.expand_dims(image, axis=-1)
+    predictions = model.predict(image)
+    return predictions
+
+def threshold_prediction(prediction, threshold):
+    if prediction >= threshold:
+        return 1
+    else:
+        return 0
+
+# Local Inference and Training
+def train_model(model, X_train, y_train, X_val, y_val):
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=1, min_delta=0.001)
+    checkpoint = ModelCheckpoint('model_weights.h5', monitor='val_loss', save_best_only=True, mode='min', verbose=1)
+    model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.001), metrics=['accuracy'])
+    history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_val, y_val), callbacks=[early_stopping, checkpoint])
+    return history
+
+# Testing and Validation
+def test_model(model, X_test, y_test):
+    predictions = model.predict(X_test)
+    predictions = np.round(predictions)
+    accuracy = accuracy_score(y_test, predictions)
+    precision = precision_score(y_test, predictions)
+    recall = recall_score(y_test, predictions)
+    f1 = f1_score(y_test, predictions)
+    return accuracy, precision, recall, f1
+
+# Main Function
+def main():
+    # Read data
+    images = []
+    labels = []
+    #...
+    
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=42)
+    
+    # Create model
+    input_shape = (256, 256, 1)
+    model = create_model(input_shape)
+    
+    # Preprocess images
+    X_train = np.array([preprocess_image(image) for image in X_train])
+    X_val = np.array([preprocess_image(image) for image in X_val])
+    X_test = np.array([preprocess_image(image) for image in X_test])
+    
+    # Augment images
+    X_train_aug = []
+    y_train_aug = []
+    for image, label in zip(X_train, y_train):
+        rotated_image, flipped_image = augment_image(image)
+        X_train_aug.append(rotated_image)
+        X_train_aug.append(flipped_image)
+        y_train_aug.append(label)
+        y_train_aug.append(label)
+    X_train_aug = np.array(X_train_aug)
+    y_train_aug = np.array(y_train_aug)
+    
+    # Train model
+    history = train_model(model, X_train_aug, y_train_aug, X_val, y_val)
+    
+    # Test model
+    accuracy, precision, recall, f1 = test_model(model, X_test, y_test)
+    print('Accuracy: {:.4f}'.format(accuracy))
+    print('Precision: {:.4f}'.format(precision))
+    print('Recall: {:.4f}'.format(recall))
+    print('F1-score: {:.4f}'.format(f1))
+
+if __name__ == '__main__':
+    main()
+```

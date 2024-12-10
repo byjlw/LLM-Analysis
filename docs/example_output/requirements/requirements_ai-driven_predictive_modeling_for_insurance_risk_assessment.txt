@@ -1,0 +1,32 @@
+**Instructions for Implementing AI-driven Predictive Modeling for Insurance Risk Assessment**
+
+### Outline
+
+1. **Data Preparation**
+	* Collect and preprocess insurance claims data from PostgreSQL database
+	* Feature engineering: extract relevant features from data
+2. **Model Selection and Training**
+	* Choose a suitable machine learning algorithm (e.g., logistic regression, decision trees, random forests) for risk assessment
+	* Train the model using the preprocessed data
+3. **Model Evaluation and Hyperparameter Tuning**
+	* Evaluate the performance of the trained model using metrics such as accuracy, precision, and recall
+	* Perform hyperparameter tuning to optimize model performance
+4. **Inference and Deployment**
+	* Create a RESTful API using Shiny to serve the trained model
+	* Integrate the API with the existing data warehouse and Tableau for visualization
+
+### Architecture
+
+* **Data Layer**: PostgreSQL database for storing insurance claims data
+* **Model Layer**: R for building and training the predictive model
+* **Inference Layer**: Shiny for creating a RESTful API to serve the trained model
+* **Visualization Layer**: Tableau for visualizing the results
+
+### Tasks for the Engineer
+
+1. **Data Preparation**: Write R code to collect, preprocess, and feature engineer the insurance claims data
+2. **Model Training**: Implement the chosen machine learning algorithm in R and train the model using the preprocessed data
+3. **Model Evaluation and Hyperparameter Tuning**: Write R code to evaluate the performance of the trained model and perform hyperparameter tuning
+4. **Inference and Deployment**: Create a Shiny API to serve the trained model and integrate it with the existing data warehouse and Tableau
+
+Note: The engineer should focus on implementing the core functionality of the AI-driven predictive modeling for insurance risk assessment, using the specified software tech stack and target hardware.

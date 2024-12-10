@@ -1,0 +1,44 @@
+**AI-driven Content Generation for Social Media: Instructions for Engineer**
+
+**Overview**
+The goal of this project is to implement an AI-driven content generation system for social media, using the company's existing JavaScript, Node.js, MongoDB, and React tech stack.
+
+**Architecture Outline**
+
+1. **Data Collection**
+	* Connect to MongoDB to collect social media post data
+	* Preprocess data for training (e.g., tokenization, normalization)
+2. **Model Training**
+	* Train a language model (e.g., LSTM, Transformer) using the collected data
+	* Use a library like TensorFlow.js or Brain.js for training
+3. **Model Inference**
+	* Use the trained model to generate new social media content
+	* Integrate with React frontend to display generated content
+4. **Content Evaluation**
+	* Develop a evaluation metric to assess generated content quality
+	* Use this metric to fine-tune the model and improve content generation
+
+**AI/ML Portions to be Built**
+
+1. **Language Model**
+	* Implement a language model architecture (e.g., LSTM, Transformer)
+	* Train the model using the collected social media post data
+2. **Content Generation**
+	* Use the trained language model to generate new social media content
+	* Integrate with React frontend to display generated content
+3. **Content Evaluation Metric**
+	* Develop a metric to evaluate generated content quality
+	* Use this metric to fine-tune the model and improve content generation
+
+**Local Inference/Training**
+
+* Train and deploy the language model locally on the server or cloud infrastructure
+* Use a library like TensorFlow.js or Brain.js to enable local inference and training
+
+**Next Steps**
+
+1. Research and implement a suitable language model architecture
+2. Develop a content evaluation metric to assess generated content quality
+3. Integrate the language model with the React frontend to display generated content
+
+Note: This outline provides a high-level overview of the architecture and AI/ML portions to be built. The engineer will need to fill in the details and implement the necessary code to bring this project to life.

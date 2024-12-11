@@ -8,6 +8,7 @@ from typing import Dict, List
 
 from ..utils.openrouter import OpenRouterClient
 from ..utils.file_handler import FileHandler
+from ..utils.process_prompts import generate_requirements
 
 logger = logging.getLogger(__name__)
 
@@ -77,8 +78,8 @@ class RequirementAnalyzer:
         prompt = self._format_prompt(idea, prompt_template)
         logger.debug(f"Using prompt:\n{prompt}")
         
-        # Generate requirements using the OpenRouter client
-        requirements = self.openrouter_client.generate_requirements(prompt)
+        # Generate requirements using process_prompts
+        requirements = generate_requirements(self.openrouter_client, prompt)
         logger.debug(f"Generated requirements:\n{requirements}")
         
         # Save requirements to file if output directory is specified

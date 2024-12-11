@@ -9,6 +9,7 @@ from collections import Counter
 from typing import Dict, List, Set, Union, Any
 
 from src.utils.file_handler import FileHandler
+from src.utils.process_prompts import generate_dependencies
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +59,10 @@ class DependencyCollector:
         # Use LLM to analyze dependencies
         try:
             if self.openrouter_client:
-                result = self.openrouter_client.collect_dependencies(content, prompt)
-                return {"frameworks": set(result.get("frameworks", []))}
+                result = generate_dependencies(self.openrouter_client, prompt, content)
+                # Convert framework names to lowercase
+                frameworks = {str(f).lower() for f in result.get("frameworks", [])}
+                return {"frameworks": frameworks}
             else:
                 logger.warning("No OpenRouter client provided, skipping LLM analysis")
                 return {"frameworks": set()}
@@ -95,6 +98,7 @@ class DependencyCollector:
         
         logger.info("Analysis complete:")
         logger.info(f"  Total frameworks found: {len(framework_counter)}")
+        logger.debug(f"  Framework counts: {dict(framework_counter)}")
         
         return {
             "frameworks": framework_counter
@@ -103,29 +107,42 @@ class DependencyCollector:
     def _normalize_dependency_data(self, data: Dict[str, Counter]) -> Dict[str, List[Dict[str, Any]]]:
         """
         Normalize dependency data into a consistent format with counts.
-        """
-        normalized = {
-            "frameworks": []
-        }
         
+        Args:
+            data: Dictionary containing framework counter
+            
+        Returns:
+            Dictionary with frameworks list
+        """
         try:
-            # Convert Counter objects to lists of dicts with name and count
-            for framework, count in data["frameworks"].items():
-                normalized["frameworks"].append({
-                    "name": framework,
+            # Get the Counter object from the data
+            framework_counter = data["frameworks"]
+            
+            # Convert Counter to list of dicts with name and count
+            frameworks = [
+                {
+                    "name": framework,  # Already lowercase from analyze_file
                     "count": count
-                })
+                }
+                for framework, count in framework_counter.items()
+            ]
             
             # Sort by name for consistent output
-            normalized["frameworks"].sort(key=lambda x: x["name"])
+            frameworks.sort(key=lambda x: x["name"])
+            
+            # Create normalized data structure
+            normalized = {
+                "frameworks": frameworks
+            }
+            
+            # Log the normalized data for debugging
+            logger.debug(f"Normalized dependency data: {json.dumps(normalized, indent=2)}")
+            
+            return normalized
             
         except Exception as e:
             logger.error(f"Error normalizing dependency data: {str(e)}")
-            return {
-                "frameworks": []
-            }
-        
-        return normalized
+            return {"frameworks": []}
 
     def _is_valid_code_dir(self, code_dir: str) -> bool:
         """
@@ -204,8 +221,5 @@ class DependencyCollector:
         except Exception as e:
             logger.error(f"Error collecting dependencies: {str(e)}")
             # Return a new dependencies file with empty data
-            empty_data = {
-                "frameworks": []
-            }
-            output_path = self.file_handler.update_dependencies(empty_data)
+            output_path = self.file_handler.update_dependencies({"frameworks": []})
             return output_path

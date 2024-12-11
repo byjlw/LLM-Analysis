@@ -9,6 +9,7 @@ from typing import Dict, List, Union
 
 from ..utils.openrouter import OpenRouterClient
 from ..utils.file_handler import FileHandler
+from ..utils.process_prompts import generate_ideas
 
 logger = logging.getLogger(__name__)
 
@@ -122,9 +123,9 @@ class IdeaGenerator:
         logger.debug(f"Using prompt:\n{prompt}")
         
         try:
-            # Generate ideas using the OpenRouter client
+            # Generate ideas using process_prompts.py
             logger.info(f"Requesting {num_ideas} ideas from OpenRouter API...")
-            ideas = self.openrouter_client.generate_ideas(prompt)
+            ideas = generate_ideas(self.openrouter_client, prompt)
             
             # Log the raw ideas for debugging
             logger.debug(f"Received ideas from API:\n{json.dumps(ideas, indent=2)}")

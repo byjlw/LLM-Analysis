@@ -132,35 +132,28 @@ class FileHandler:
                 current_deps = self.load_json(filepath)
             else:
                 logger.debug("No existing dependencies file, creating new one")
-                current_deps = {"frameworks": [], "models": []}
+                current_deps = {"frameworks": []}
                 
             # Update frameworks
             for new_framework in new_deps.get("frameworks", []):
+                # Ensure framework name is lowercase
+                new_name = new_framework["name"].lower()
                 found = False
                 for existing in current_deps["frameworks"]:
-                    if existing["name"] == new_framework:
-                        existing["count"] += 1
+                    # Compare in lowercase
+                    if existing["name"].lower() == new_name:
+                        existing["count"] += new_framework["count"]
                         found = True
                         break
                 if not found:
+                    # Add new framework with lowercase name
                     current_deps["frameworks"].append({
-                        "name": new_framework,
-                        "count": 1
+                        "name": new_name,
+                        "count": new_framework["count"]
                     })
                     
-            # Update models
-            for new_model in new_deps.get("models", []):
-                found = False
-                for existing in current_deps["models"]:
-                    if existing["name"] == new_model:
-                        existing["count"] += 1
-                        found = True
-                        break
-                if not found:
-                    current_deps["models"].append({
-                        "name": new_model,
-                        "count": 1
-                    })
+            # Sort frameworks by lowercase name for consistency
+            current_deps["frameworks"].sort(key=lambda x: x["name"])
                     
             logger.debug(f"Saving updated dependencies to: {filepath}")
             return self.save_json(current_deps, filename)

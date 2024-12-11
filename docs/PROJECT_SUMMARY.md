@@ -1,7 +1,7 @@
-# LLM CODING ANALYSIS
+# LLM ANALYSIS
 
 ## 1. Project Overview
-This project analyzes the code returned by LLM models to deterimine which frameworks are are being used by coding request
+This project provides tools for analyzing various aspects of LLM model outputs, with the current focus on analyzing code dependencies to determine which frameworks are being used by coding requests.
 
 ## 2. Technical Details and Architecture
 ![Design Digram](design.png)
@@ -10,14 +10,14 @@ This project analyzes the code returned by LLM models to deterimine which framew
 * python 3.10+
 * use OpenRouter for interacting with LLMs
 * default_config.json for storing model to use
-* cli to kick the process off and allows for passing in models and openrouter key
+* cli with subcommands (e.g., `llm-analysis coding-dependencies`) to kick off specific analysis processes
 * can start at any place in the pipeline by specifying the stage and working folder on the commandline
 * Should use venv with .venv as the folder
 * Allow for installing this project
 * Each run should should result in a new folder for the output files in `/output` and should include a timestamp by default if no path is provided
 
 ## 2.2 Data Flow
-1. In anitial prompt `prompts/1-spawn_ideas.txt` will be sent to openrouter to generate a json file with a list of product ideas following this format
+1. In initial prompt `prompts/1-spawn_ideas.txt` will be sent to openrouter to generate a json file with a list of product ideas following this format
 ```
 [
     {
@@ -38,7 +38,7 @@ Like this:
 ```
 ["Ruby on Rails", "PostgreSQL", "Vue.js", "Redis", "TensorFlow", "PyTorch"]
 ```
-5. Create or update `output/depedencies.json` with the dependencies collected in step 4. If the dependency is already in `dependencies.json` then increment the number by the dependecy following this format
+5. Create or update `output/dependencies.json` with the dependencies collected in step 4. If the dependency is already in `dependencies.json` then increment the number by the dependency following this format
 
 ```
 {
@@ -59,8 +59,8 @@ Like this:
 }
 ```
 
-## 2.3 Error Handling Phiosophy
-The responses from LLMs are non-deterministic, espcially given that the user should be able to use any LLM they want.
+## 2.3 Error Handling Philosophy
+The responses from LLMs are non-deterministic, especially given that the user should be able to use any LLM they want.
 
 * For LLM calls that expect a certain format you can catch conversion and processing issues and then respond back to the LLM with `prompts/e1-wrong_format.txt` to fix the format. 
 
@@ -70,3 +70,4 @@ The responses from LLMs are non-deterministic, espcially given that the user sho
 * Parallel requests to the LLM to speed things up
 * Better scaling for idea generation
 * Single command to compare frameworks used across an array of LLMs
+* Additional analysis types beyond code dependencies

@@ -78,14 +78,21 @@ def test_default_config_exists():
     default_config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src', 'config', 'default_config.json')
     assert os.path.exists(default_config_path), "default_config.json must exist"
 
-@patch('sys.argv', ['llm-coding-analysis'])
+@patch('sys.argv', ['llm-analysis'])
+def test_main_no_command():
+    """Test main function without a command."""
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+    assert exc_info.value.code == 1
+
+@patch('sys.argv', ['llm-analysis', 'coding-dependencies'])
 def test_main_missing_api_key():
     """Test main function without API key."""
     with pytest.raises(SystemExit) as exc_info:
         main()
     assert exc_info.value.code == 1
 
-@patch('sys.argv', ['llm-coding-analysis', '--api-key', 'test-key', '--model', 'custom-model'])
+@patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--model', 'custom-model'])
 @patch('src.cli.OpenRouterClient', autospec=True)
 @patch('src.cli.FileHandler', autospec=True)
 @patch('src.cli.IdeaGenerator', autospec=True)
@@ -133,7 +140,7 @@ def test_main_config_override(
         max_retries=3
     )
 
-@patch('sys.argv', ['llm-coding-analysis', '--api-key', 'test-key', '--log-level', 'DEBUG'])
+@patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--log-level', 'DEBUG'])
 @patch('src.cli.setup_logging')
 def test_main_log_level_config(mock_setup_logging):
     """Test log level configuration."""

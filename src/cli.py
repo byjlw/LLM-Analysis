@@ -1,5 +1,5 @@
 """
-Command line interface for the LLM Coding Analysis tool.
+Command line interface for the LLM Analysis tool.
 """
 
 import argparse
@@ -54,7 +54,7 @@ def setup_logging(log_level="INFO"):
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler('llm_coding_analysis.log')
+            logging.FileHandler('llm_analysis.log')
         ]
     )
 
@@ -98,53 +98,63 @@ def load_config(config_path=None):
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description='LLM Coding Analysis Tool')
+    parser = argparse.ArgumentParser(description='LLM Analysis Tool')
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
-    parser.add_argument(
+    # Coding dependencies command
+    coding_deps = subparsers.add_parser('coding-dependencies', 
+                                       help='Analyze code dependencies in LLM outputs')
+    
+    coding_deps.add_argument(
         '--api-key',
         help='OpenRouter API key',
         default=os.environ.get('OPENROUTER_API_KEY')
     )
     
-    parser.add_argument(
+    coding_deps.add_argument(
         '--output-dir',
         help='Output directory',
         default='output'
     )
 
-    parser.add_argument(
+    coding_deps.add_argument(
         '--working-dir',
         help='Working directory name (defaults to timestamp)',
         default=None
     )
     
-    parser.add_argument(
+    coding_deps.add_argument(
         '--num-ideas',
         type=int,
         help='Number of ideas to generate',
         default=15
     )
     
-    parser.add_argument(
+    coding_deps.add_argument(
         '--model',
         help='Model to use for generation',
         default='meta-llama/llama-3.3-70b-instruct'
     )
     
-    parser.add_argument(
+    coding_deps.add_argument(
         '--log-level',
         help='Logging level',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         default='INFO'
     )
 
-    parser.add_argument(
+    coding_deps.add_argument(
         '--start-step',
         help='Step to start from (1/ideas, 2/requirements, 3/code, 4/dependencies)',
         default='1'
     )
     
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+        
+    return args
 
 def create_working_dir(base_dir: str, working_dir: str = None) -> str:
     """

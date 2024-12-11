@@ -1,0 +1,44 @@
+**Compliance and Risk Management AI Instructions**
+```json
+{
+  "product_idea": "AI-driven Compliance and Risk Management",
+  "problem_it_solves": "Helps businesses manage compliance and risk",
+  "techstack": ["Java", "Spring Boot", "MySQL", "Angular"],
+  "target_hardware": ["Enterprise servers", "Compliance devices"],
+  "company_profile": "Compliance software",
+  "engineering_profile": "Enterprise software engineers",
+  "instructions": {
+    "architecture": {
+      "components": [
+        "Data Ingestion",
+        "Data Preprocessing",
+        "Model Training",
+        "Model Inference",
+        "Risk Scoring"
+      ],
+      "data_flow": "Data Ingestion -> Data Preprocessing -> Model Training -> Model Inference -> Risk Scoring"
+    },
+    "ai_ml_portions": [
+      {
+        "portion": "Model Training",
+        "task": "Train a machine learning model to predict compliance risk",
+        "input": "Compliance data",
+        "output": "Trained model"
+      },
+      {
+        "portion": "Model Inference",
+        "task": "Use the trained model to predict compliance risk for new data",
+        "input": "New compliance data",
+        "output": "Predicted risk score"
+      }
+    ],
+    "local_deployment": "Deploy the model training and inference code on local enterprise servers",
+    "requirements": [
+      "Use a suitable machine learning library for Java (e.g. Weka, Deeplearning4j)",
+      "Implement data preprocessing and feature engineering techniques",
+      "Train a model using a suitable algorithm (e.g. Random Forest, Gradient Boosting)",
+      "Implement model inference and risk scoring logic"
+    ]
+  }
+}
+```

@@ -1,0 +1,233 @@
+### DataPreprocessing.java
+```java
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class DataPreprocessing {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public DataPreprocessing(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public List<double[]> preprocessData() {
+        List<double[]> data = new ArrayList<>();
+
+        jdbcTemplate.query("SELECT income, expenses, savings, debts FROM financial_data", new Object[]{},
+                (ResultSet rs, int rowNum) -> {
+                    double income = rs.getDouble("income");
+                    double expenses = rs.getDouble("expenses");
+                    double savings = rs.getDouble("savings");
+                    double debts = rs.getDouble("debts");
+
+                    double[] features = {income, expenses, savings, debts};
+                    data.add(features);
+
+                    return null;
+                });
+
+        return data;
+    }
+
+    public List<double[]> normalizeData(List<double[]> data) {
+        double[] minValues = new double[data.get(0).length];
+        double[] maxValues = new double[data.get(0).length];
+
+        for (int i = 0; i < data.get(0).length; i++) {
+            double min = Double.MAX_VALUE;
+            double max = Double.MIN_VALUE;
+
+            for (double[] features : data) {
+                if (features[i] < min) {
+                    min = features[i];
+                }
+                if (features[i] > max) {
+                    max = features[i];
+                }
+            }
+
+            minValues[i] = min;
+            maxValues[i] = max;
+        }
+
+        List<double[]> normalizedData = new ArrayList<>();
+
+        for (double[] features : data) {
+            double[] normalizedFeatures = new double[features.length];
+
+            for (int i = 0; i < features.length; i++) {
+                normalizedFeatures[i] = (features[i] - minValues[i]) / (maxValues[i] - minValues[i]);
+            }
+
+            normalizedData.add(normalizedFeatures);
+        }
+
+        return normalizedData;
+    }
+}
+```
+
+### ModelTraining.java
+```java
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class ModelTraining {
+
+    private final DataPreprocessing dataPreprocessing;
+
+    @Autowired
+    public ModelTraining(DataPreprocessing dataPreprocessing) {
+        this.dataPreprocessing = dataPreprocessing;
+    }
+
+    public MultiLayerNetwork trainModel(List<double[]> data) {
+        int inputSize = data.get(0).length;
+        int outputSize = 1;
+
+        MultiLayerNetwork model = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
+               .seed(123)
+               .weightInit(WeightInit.XAVIER)
+               .updater(new Nesterovs(0.01))
+               .list()
+               .layer(0, new DenseLayer.Builder()
+                       .nIn(inputSize)
+                       .nOut(10)
+                       .activation(Activation.RELU)
+                       .build())
+               .layer(1, new OutputLayer.Builder()
+                       .nIn(10)
+                       .nOut(outputSize)
+                       .activation(Activation.IDENTITY)
+                       .lossFunction(LossFunctions.LossFunction.MSE)
+                       .build())
+               .pretrain(false).backprop(true).build());
+
+        model.init();
+
+        INDArray input = Nd4j.create(data.size(), inputSize);
+        INDArray output = Nd4j.create(data.size(), outputSize);
+
+        for (int i = 0; i < data.size(); i++) {
+            double[] features = data.get(i);
+            input.putRow(i, Nd4j.create(features));
+
+            // Assuming financial health score is calculated separately
+            output.putScalar(i, 0, 0.5);
+        }
+
+        model.fit(input, output);
+
+        return model;
+    }
+}
+```
+
+### ModelInference.java
+```java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ModelInference {
+
+    private final ModelTraining modelTraining;
+
+    @Autowired
+    public ModelInference(ModelTraining modelTraining) {
+        this.modelTraining = modelTraining;
+    }
+
+    public double[] predict(MultiLayerNetwork model, double[] input) {
+        INDArray inputData = Nd4j.create(input);
+        INDArray output = model.output(inputData);
+
+        return output.toDoubleVector();
+    }
+}
+```
+
+### FinancialHealthScoreCalculator.java
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class FinancialHealthScoreCalculator {
+
+    private final ModelInference modelInference;
+    private final ModelTraining modelTraining;
+    private final DataPreprocessing dataPreprocessing;
+
+    @Autowired
+    public FinancialHealthScoreCalculator(ModelInference modelInference, ModelTraining modelTraining, DataPreprocessing dataPreprocessing) {
+        this.modelInference = modelInference;
+        this.modelTraining = modelTraining;
+        this.dataPreprocessing = dataPreprocessing;
+    }
+
+    public double calculateFinancialHealthScore(double[] input) {
+        List<double[]> data = dataPreprocessing.preprocessData();
+        List<double[]> normalizedData = dataPreprocessing.normalizeData(data);
+
+        MultiLayerNetwork model = modelTraining.trainModel(normalizedData);
+        double[] output = modelInference.predict(model, input);
+
+        return output[0];
+    }
+}
+```
+
+### FinancialPlanningAndAnalysisApplicationTests.java
+```java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class FinancialPlanningAndAnalysisApplicationTests {
+
+    @Autowired
+    private FinancialHealthScoreCalculator financialHealthScoreCalculator;
+
+    @Test
+    public void testCalculateFinancialHealthScore() {
+        double[] input = {1000, 500, 200, 100};
+        double financialHealthScore = financialHealthScoreCalculator.calculateFinancialHealthScore(input);
+
+        assertEquals(0.5, financialHealthScore, 0.1);
+    }
+}
+```

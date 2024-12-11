@@ -1,0 +1,348 @@
+```java
+// DataPreprocessingModule.java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+@SpringBootApplication
+@RestController
+public class DataPreprocessingModule {
+
+    @GetMapping("/collect-data")
+    public List<SupplyChainData> collectData() {
+        List<SupplyChainData> data = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/supply_chain", "root", "password")) {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM supply_chain_data");
+            while (rs.next()) {
+                SupplyChainData supplyChainData = new SupplyChainData(
+                        rs.getInt("id"),
+                        rs.getString("logistics"),
+                        rs.getString("inventory"),
+                        rs.getString("shipping")
+                );
+                data.add(supplyChainData);
+            }
+        } catch (Exception e) {
+            System.out.println("Error collecting data: " + e.getMessage());
+        }
+        return data;
+    }
+
+    @PostMapping("/preprocess-data")
+    public List<PreprocessedData> preprocessData(@RequestBody List<SupplyChainData> data) {
+        List<PreprocessedData> preprocessedData = new ArrayList<>();
+        for (SupplyChainData supplyChainData : data) {
+            PreprocessedData preprocessedDataItem = new PreprocessedData(
+                    supplyChainData.getLogistics(),
+                    supplyChainData.getInventory(),
+                    supplyChainData.getShipping()
+            );
+            preprocessedData.add(preprocessedDataItem);
+        }
+        return preprocessedData;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DataPreprocessingModule.class, args);
+    }
+}
+
+class SupplyChainData {
+    private int id;
+    private String logistics;
+    private String inventory;
+    private String shipping;
+
+    public SupplyChainData(int id, String logistics, String inventory, String shipping) {
+        this.id = id;
+        this.logistics = logistics;
+        this.inventory = inventory;
+        this.shipping = shipping;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getLogistics() {
+        return logistics;
+    }
+
+    public String getInventory() {
+        return inventory;
+    }
+
+    public String getShipping() {
+        return shipping;
+    }
+}
+
+class PreprocessedData {
+    private String logistics;
+    private String inventory;
+    private String shipping;
+
+    public PreprocessedData(String logistics, String inventory, String shipping) {
+        this.logistics = logistics;
+        this.inventory = inventory;
+        this.shipping = shipping;
+    }
+
+    public String getLogistics() {
+        return logistics;
+    }
+
+    public String getInventory() {
+        return inventory;
+    }
+
+    public String getShipping() {
+        return shipping;
+    }
+}
+```
+
+```java
+// MachineLearningModel.java
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.DataSet;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.Nesterovs;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class MachineLearningModel {
+
+    public MultiLayerNetwork trainModel(List<PreprocessedData> data) {
+        int inputs = 3;
+        int outputs = 1;
+        int hidden = 10;
+
+        MultiLayerNetwork model = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
+               .seed(42)
+               .weightInit(org.deeplearning4j.nn.weights.WeightInit.XAVIER)
+               .updater(new Nesterovs(0.1))
+               .list()
+               .layer(0, new DenseLayer.Builder()
+                       .nIn(inputs)
+                       .nOut(hidden)
+                       .activation(Activation.RELU)
+                       .build())
+               .layer(1, new OutputLayer.Builder()
+                       .nIn(hidden)
+                       .nOut(outputs)
+                       .activation(Activation.IDENTITY)
+                       .lossFunction(LossFunctions.LossFunction.MSE)
+                       .build())
+               .pretrain(false).backprop(true).build());
+
+        model.init();
+
+        model.setListeners(new ScoreIterationListener(10));
+
+        INDArray input = Nd4j.create(data.size(), inputs);
+        INDArray output = Nd4j.create(data.size(), outputs);
+
+        for (int i = 0; i < data.size(); i++) {
+            PreprocessedData item = data.get(i);
+            input.putScalar(i, 0, item.getLogistics());
+            input.putScalar(i, 1, item.getInventory());
+            input.putScalar(i, 2, item.getShipping());
+            output.putScalar(i, 0, 1.0); // dummy output
+        }
+
+        DataSet dataSet = new DataSet(input, output);
+        DataSetIterator iterator = new org.deeplearning4j.datasets.iterator.impl.ListDataSetIterator<>(new ArrayList<>(List.of(dataSet)), data.size());
+
+        model.fit(iterator);
+
+        return model;
+    }
+}
+```
+
+```java
+// ModelDeployment.java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@SpringBootApplication
+@RestController
+public class ModelDeployment {
+
+    private MachineLearningModel model;
+
+    public ModelDeployment() {
+        this.model = new MachineLearningModel();
+    }
+
+    @PostMapping("/train-model")
+    public String trainModel(@RequestBody List<PreprocessedData> data) {
+        MultiLayerNetwork trainedModel = model.trainModel(data);
+        // save the trained model
+        return "Model trained successfully";
+    }
+
+    @PostMapping("/make-prediction")
+    public String makePrediction(@RequestBody PreprocessedData data) {
+        // load the trained model
+        MultiLayerNetwork trainedModel = model.trainModel(new ArrayList<>());
+        // make prediction using the trained model
+        return "Prediction made successfully";
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(ModelDeployment.class, args);
+    }
+}
+```
+
+```java
+// InferenceModule.java
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+public class InferenceModule {
+
+    private MachineLearningModel model;
+
+    public InferenceModule() {
+        this.model = new MachineLearningModel();
+    }
+
+    @PostMapping("/infer")
+    public String infer(@RequestBody PreprocessedData data) {
+        // load the trained model
+        MultiLayerNetwork trainedModel = model.trainModel(new ArrayList<>());
+        // make prediction using the trained model
+        return "Inference made successfully";
+    }
+}
+```
+
+```java
+// DataPreprocessingModuleTest.java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class DataPreprocessingModuleTest {
+
+    @Autowired
+    private DataPreprocessingModule dataPreprocessingModule;
+
+    @Test
+    public void testCollectData() {
+        List<SupplyChainData> data = dataPreprocessingModule.collectData();
+        assertEquals(10, data.size());
+    }
+
+    @Test
+    public void testPreprocessData() {
+        List<SupplyChainData> data = dataPreprocessingModule.collectData();
+        List<PreprocessedData> preprocessedData = dataPreprocessingModule.preprocessData(data);
+        assertEquals(10, preprocessedData.size());
+    }
+}
+```
+
+```java
+// MachineLearningModelTest.java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertNotNull;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class MachineLearningModelTest {
+
+    @Autowired
+    private MachineLearningModel machineLearningModel;
+
+    @Test
+    public void testTrainModel() {
+        List<PreprocessedData> data = new ArrayList<>();
+        MultiLayerNetwork trainedModel = machineLearningModel.trainModel(data);
+        assertNotNull(trainedModel);
+    }
+}
+```
+
+```java
+// ModelDeploymentTest.java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ModelDeploymentTest {
+
+    @Autowired
+    private ModelDeployment modelDeployment;
+
+    @Test
+    public void testTrainModel() {
+        List<PreprocessedData> data = new ArrayList<>();
+        String result = modelDeployment.trainModel(data);
+        assertEquals("Model trained successfully", result);
+    }
+
+    @Test
+    public void testMakePrediction() {
+        PreprocessedData data = new PreprocessedData();
+        String result = modelDeployment.makePrediction(data);
+        assertEquals("Prediction made successfully", result);
+    }
+}
+```

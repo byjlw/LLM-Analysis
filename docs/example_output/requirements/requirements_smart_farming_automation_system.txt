@@ -1,0 +1,57 @@
+**Smart Farming Automation System AI/ML Implementation Instructions**
+
+### Outline
+
+1. **Architecture**
+	* IoT sensors will collect data on temperature, humidity, soil moisture, and other relevant factors
+	* Data will be transmitted to a local farming device (e.g. Arduino-based) via WiFi
+	* The farming device will run a machine learning model to predict optimal crop yields and detect potential issues
+2. **Machine Learning Model**
+	* Type: Regression-based model (e.g. Random Forest, Gradient Boosting)
+	* Input features: temperature, humidity, soil moisture, and other relevant factors
+	* Output: predicted crop yield and issue detection (e.g. disease, pests)
+3. **Local Inference**
+	* The farming device will run the trained model to make predictions on new, incoming data
+	* Predictions will be used to optimize crop yields and reduce waste
+
+### Instructions for Engineer
+
+1. **Choose a suitable machine learning library for C++**
+	* Options: TensorFlow, OpenCV, Eigen
+2. **Implement data preprocessing and feature engineering**
+	* Clean and normalize incoming data from IoT sensors
+	* Extract relevant features from the data
+3. **Train a machine learning model using local data**
+	* Use a regression-based model to predict optimal crop yields and detect potential issues
+	* Train the model using historical data from the farm
+4. **Implement local inference on the farming device**
+	* Use the trained model to make predictions on new, incoming data
+	* Optimize crop yields and reduce waste based on predictions
+5. **Test and validate the implementation**
+	* Use a separate test dataset to evaluate the model's performance
+	* Validate the implementation using metrics such as accuracy, precision, and recall
+
+### Notes
+
+* The implementation should be able to run on the local farming device (e.g. Arduino-based) without relying on external AI/ML services.
+* The machine learning model should be trained using local data to ensure optimal performance and adaptability to the specific farm's conditions.
+* The implementation should be able to handle varying amounts of data and make predictions in real-time to optimize crop yields and reduce waste. 
+
+```json
+{
+  "architecture": {
+    "iot_sensors": ["temperature", "humidity", "soil_moisture"],
+    "farming_device": "Arduino-based",
+    "machine_learning_model": "regression-based"
+  },
+  "machine_learning_model": {
+    "type": "regression",
+    "input_features": ["temperature", "humidity", "soil_moisture"],
+    "output": ["predicted_crop_yield", "issue_detection"]
+  },
+  "local_inference": {
+    "implementation": "C++",
+    "library": ["TensorFlow", "OpenCV", "Eigen"]
+  }
+}
+```

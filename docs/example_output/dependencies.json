@@ -1,810 +1,240 @@
 {
   "frameworks": [
     {
-      "name": {
-        "name": ".NET",
-        "count": 1
-      },
+      "name": "angular",
       "count": 1
     },
     {
-      "name": {
-        "name": "@tensorflow/tfjs",
-        "count": 1
-      },
+      "name": "apache commons",
       "count": 1
     },
     {
-      "name": {
-        "name": "Accord.MachineLearning",
-        "count": 1
-      },
+      "name": "apache commons math",
       "count": 1
     },
     {
-      "name": {
-        "name": "Accord.Statistics.Analysis",
-        "count": 1
-      },
+      "name": "arduino",
       "count": 1
     },
     {
-      "name": {
-        "name": "Angular",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Apache Commons Math",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Autoencoder",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Caffe",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Darknet",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Dart",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Deeplearning4j",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Django",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Eigen",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Express.js",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "FaceNet",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Flask",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Flask-SQLAlchemy",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Flutter",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "HTTP",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "ImagePicker",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "JDBC",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "JUnit",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Java",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Keras",
-        "count": 3
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "ML.NET",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "MQTTnet",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "MathNet.Numerics",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "MathNet.Numerics.Data.Matlab",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Mongoose",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "MySQL",
-        "count": 3
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "NLTK",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Node.js",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "NumPy",
-        "count": 4
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "OpenCV",
-        "count": 8
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "PCL",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "PIL",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Pandas",
-        "count": 1
-      },
-      "count": 1
+      "name": "caret",
+      "count": 2
     },
     {
-      "name": {
-        "name": "Pillow",
-        "count": 1
-      },
+      "name": "cluster",
       "count": 1
     },
     {
-      "name": {
-        "name": "PostgreSQL",
-        "count": 3
-      },
+      "name": "csv",
       "count": 1
     },
     {
-      "name": {
-        "name": "Psycopg2",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "PyTorch",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Qt",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "ROS",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "RPostgreSQL",
-        "count": 5
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Redis",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Ruby on Rails",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "SQLite",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "SQLite3",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Scikit-learn",
-        "count": 3
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Spring",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Spring Boot",
-        "count": 4
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Spring Framework",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "System",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "System.Windows.Forms",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Tableau",
-        "count": 2
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "TensorFlow",
-        "count": 6
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "TensorFlow.js",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Transformers",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Unity",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Vue.js",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "Weka",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "YOLO",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "a-star",
-        "count": 1
-      },
-      "count": 1
-    },
-    {
-      "name": {
-        "name": "axios",
-        "count": 1
-      },
-      "count": 1
+      "name": "deeplearning4j",
+      "count": 9
     },
     {
-      "name": {
-        "name": "brain.js",
-        "count": 1
-      },
-      "count": 1
+      "name": "django",
+      "count": 3
     },
     {
-      "name": {
-        "name": "caret",
-        "count": 3
-      },
+      "name": "dlib",
       "count": 1
     },
     {
-      "name": {
-        "name": "csv-parser",
-        "count": 1
-      },
-      "count": 1
+      "name": "dplyr",
+      "count": 2
     },
     {
-      "name": {
-        "name": "dbplyr",
-        "count": 1
-      },
+      "name": "eigen",
       "count": 1
     },
     {
-      "name": {
-        "name": "dijkstra",
-        "count": 1
-      },
+      "name": "express",
       "count": 1
     },
     {
-      "name": {
-        "name": "django",
-        "count": 2
-      },
+      "name": "factoextra",
       "count": 1
     },
     {
-      "name": {
-        "name": "dplyr",
-        "count": 4
-      },
-      "count": 1
+      "name": "flask",
+      "count": 3
     },
     {
-      "name": {
-        "name": "express",
-        "count": 6
-      },
+      "name": "forecast",
       "count": 1
     },
     {
-      "name": {
-        "name": "flask",
-        "count": 3
-      },
+      "name": "ggplot2",
       "count": 1
     },
     {
-      "name": {
-        "name": "flask_sqlalchemy",
-        "count": 1
-      },
-      "count": 1
+      "name": "google test",
+      "count": 4
     },
     {
-      "name": {
-        "name": "flutter",
-        "count": 2
-      },
-      "count": 1
+      "name": "gtest",
+      "count": 2
     },
     {
-      "name": {
-        "name": "forecast",
-        "count": 2
-      },
+      "name": "http.server",
       "count": 1
     },
     {
-      "name": {
-        "name": "genetic-js",
-        "count": 1
-      },
+      "name": "java api for restful web services (jax-rs)",
       "count": 1
     },
     {
-      "name": {
-        "name": "ggplot2",
-        "count": 1
-      },
-      "count": 1
+      "name": "junit",
+      "count": 8
     },
     {
-      "name": {
-        "name": "httr",
-        "count": 1
-      },
+      "name": "lubridate",
       "count": 1
     },
     {
-      "name": {
-        "name": "jest",
-        "count": 2
-      },
+      "name": "minitest",
       "count": 1
     },
     {
-      "name": {
-        "name": "jsoncpp",
-        "count": 1
-      },
+      "name": "mongoose",
       "count": 1
     },
     {
-      "name": {
-        "name": "jsonlite",
-        "count": 1
-      },
-      "count": 1
+      "name": "mysql",
+      "count": 3
     },
     {
-      "name": {
-        "name": "keras",
-        "count": 1
-      },
-      "count": 1
+      "name": "nd4j",
+      "count": 8
     },
     {
-      "name": {
-        "name": "lodash",
-        "count": 2
-      },
+      "name": "nltk",
       "count": 1
     },
     {
-      "name": {
-        "name": "lstm-network",
-        "count": 1
-      },
+      "name": "nnet",
       "count": 1
     },
     {
-      "name": {
-        "name": "mongoose",
-        "count": 7
-      },
+      "name": "nokogiri",
       "count": 1
     },
     {
-      "name": {
-        "name": "nav_msgs",
-        "count": 1
-      },
-      "count": 1
+      "name": "numpy",
+      "count": 7
     },
     {
-      "name": {
-        "name": "numpy",
-        "count": 4
-      },
+      "name": "open-uri",
       "count": 1
     },
     {
-      "name": {
-        "name": "pandas",
-        "count": 6
-      },
-      "count": 1
+      "name": "opencv",
+      "count": 2
     },
     {
-      "name": {
-        "name": "prophet",
-        "count": 1
-      },
+      "name": "os",
       "count": 1
     },
     {
-      "name": {
-        "name": "prophet-js",
-        "count": 1
-      },
-      "count": 1
+      "name": "pandas",
+      "count": 9
     },
     {
-      "name": {
-        "name": "psycopg2",
-        "count": 2
-      },
-      "count": 1
+      "name": "pickle",
+      "count": 3
     },
     {
-      "name": {
-        "name": "randomForest",
-        "count": 3
-      },
+      "name": "plumber",
       "count": 1
     },
     {
-      "name": {
-        "name": "react",
-        "count": 3
-      },
-      "count": 1
+      "name": "psycopg2",
+      "count": 4
     },
     {
-      "name": {
-        "name": "requests",
-        "count": 1
-      },
+      "name": "randomforest",
       "count": 1
     },
     {
-      "name": {
-        "name": "rtableau",
-        "count": 1
-      },
+      "name": "react native",
       "count": 1
     },
     {
-      "name": {
-        "name": "scikit-learn",
-        "count": 1
-      },
+      "name": "react_native",
       "count": 1
     },
     {
-      "name": {
-        "name": "sensor_msgs",
-        "count": 1
-      },
+      "name": "requests",
       "count": 1
     },
     {
-      "name": {
-        "name": "shiny",
-        "count": 5
-      },
-      "count": 1
+      "name": "rpostgresql",
+      "count": 3
     },
     {
-      "name": {
-        "name": "shinydashboard",
-        "count": 2
-      },
-      "count": 1
+      "name": "scikit-learn",
+      "count": 4
     },
     {
-      "name": {
-        "name": "simulated-annealing",
-        "count": 1
-      },
-      "count": 1
+      "name": "shiny",
+      "count": 3
     },
     {
-      "name": {
-        "name": "sklearn",
-        "count": 5
-      },
-      "count": 1
+      "name": "sklearn",
+      "count": 5
     },
     {
-      "name": {
-        "name": "spacy",
-        "count": 1
-      },
+      "name": "socketserver",
       "count": 1
     },
     {
-      "name": {
-        "name": "stats",
-        "count": 1
-      },
+      "name": "spacy",
       "count": 1
     },
     {
-      "name": {
-        "name": "std_msgs",
-        "count": 1
-      },
-      "count": 1
+      "name": "spring",
+      "count": 3
     },
     {
-      "name": {
-        "name": "stringr",
-        "count": 1
-      },
-      "count": 1
+      "name": "spring boot",
+      "count": 5
     },
     {
-      "name": {
-        "name": "tableau",
-        "count": 2
-      },
-      "count": 1
+      "name": "sqlalchemy",
+      "count": 2
     },
     {
-      "name": {
-        "name": "tensorflow",
-        "count": 7
-      },
+      "name": "supertest",
       "count": 1
     },
     {
-      "name": {
-        "name": "testthat",
-        "count": 2
-      },
-      "count": 1
+      "name": "tensorflow",
+      "count": 8
     },
     {
-      "name": {
-        "name": "tf",
-        "count": 1
-      },
-      "count": 1
+      "name": "tensorflow lite",
+      "count": 2
     },
     {
-      "name": {
-        "name": "tidyr",
-        "count": 3
-      },
-      "count": 1
+      "name": "testthat",
+      "count": 2
     },
     {
-      "name": {
-        "name": "tidyverse",
-        "count": 1
-      },
+      "name": "torch",
       "count": 1
     },
     {
-      "name": {
-        "name": "torch",
-        "count": 3
-      },
-      "count": 1
+      "name": "unittest",
+      "count": 5
     },
     {
-      "name": {
-        "name": "transformers",
-        "count": 2
-      },
+      "name": "vue.js",
       "count": 1
     },
     {
-      "name": {
-        "name": "unittest",
-        "count": 1
-      },
+      "name": "wifi",
       "count": 1
     }
-  ],
-  "models": []
+  ]
 }

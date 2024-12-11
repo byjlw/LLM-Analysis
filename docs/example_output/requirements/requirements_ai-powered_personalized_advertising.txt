@@ -1,0 +1,76 @@
+To implement the AI-powered Personalized Advertising product, I will provide instructions for the AI/ML portions of the project. Here is the outline:
+
+**Architecture:**
+
+* Data Collection: Collect user data and ad interaction data from PostgreSQL database
+* Data Preprocessing: Preprocess data using Python and relevant libraries (e.g. Pandas, NumPy)
+* Model Training: Train a personalized advertising model using a suitable algorithm (e.g. Collaborative Filtering, Content-Based Filtering)
+* Model Inference: Use the trained model to generate personalized ad recommendations for users
+* Integration: Integrate the AI/ML model with the existing Flask API and Vue.js frontend
+
+**Portions to be built:**
+
+1. **Data Preprocessing**:
+	* Load user and ad interaction data from PostgreSQL database
+	* Preprocess data by handling missing values, normalization, and feature engineering
+2. **Model Training**:
+	* Choose a suitable algorithm for personalized advertising (e.g. Collaborative Filtering, Content-Based Filtering)
+	* Train the model using the preprocessed data
+	* Evaluate the model's performance using relevant metrics (e.g. precision, recall, F1-score)
+3. **Model Inference**:
+	* Use the trained model to generate personalized ad recommendations for users
+	* Implement a function to take in user data and return a list of recommended ads
+4. **Integration**:
+	* Integrate the AI/ML model with the existing Flask API
+	* Use the API to serve personalized ad recommendations to the Vue.js frontend
+
+**Instructions for the Engineer:**
+
+1. Implement the data preprocessing step using Python and relevant libraries.
+2. Train a personalized advertising model using a suitable algorithm and evaluate its performance.
+3. Implement the model inference step to generate personalized ad recommendations for users.
+4. Integrate the AI/ML model with the existing Flask API and Vue.js frontend.
+
+**Output:**
+
+The output of the AI/ML model should be a list of recommended ads for a given user, along with their corresponding scores or probabilities. The engineer should ensure that the model is trained and evaluated on a local machine, and that the inference step can be executed locally without relying on any external AI/ML services. 
+
+Here is the instructions in json format:
+```json
+{
+  "architecture": {
+    "data_collection": "PostgreSQL database",
+    "data_preprocessing": "Python and relevant libraries",
+    "model_training": "Suitable algorithm (e.g. Collaborative Filtering, Content-Based Filtering)",
+    "model_inference": "Generate personalized ad recommendations for users",
+    "integration": "Flask API and Vue.js frontend"
+  },
+  "portions_to_be_built": [
+    {
+      "name": "Data Preprocessing",
+      "description": "Load user and ad interaction data, handle missing values, normalization, and feature engineering"
+    },
+    {
+      "name": "Model Training",
+      "description": "Choose a suitable algorithm, train the model, and evaluate its performance"
+    },
+    {
+      "name": "Model Inference",
+      "description": "Use the trained model to generate personalized ad recommendations for users"
+    },
+    {
+      "name": "Integration",
+      "description": "Integrate the AI/ML model with the existing Flask API and Vue.js frontend"
+    }
+  ],
+  "instructions": [
+    "Implement data preprocessing using Python and relevant libraries",
+    "Train a personalized advertising model using a suitable algorithm and evaluate its performance",
+    "Implement model inference to generate personalized ad recommendations for users",
+    "Integrate the AI/ML model with the existing Flask API and Vue.js frontend"
+  ],
+  "output": {
+    "description": "List of recommended ads for a given user, along with their corresponding scores or probabilities"
+  }
+}
+```

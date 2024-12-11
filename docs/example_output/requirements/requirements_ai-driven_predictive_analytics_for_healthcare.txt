@@ -1,0 +1,35 @@
+Here are the instructions for the AI/ML portions of the project:
+
+```
+{
+  "Project Overview": "AI-driven Predictive Analytics for Healthcare",
+  "Problem Statement": "Improve patient outcomes and reduce costs",
+  "Technical Requirements": {
+    "Software Techstack": ["R", "Shiny", "PostgreSQL", "Vue.js"],
+    "Target Hardware": ["Web browsers", "Mobile devices"],
+    "Company Profile": "Healthcare software",
+    "Engineering Profile": ["Data scientists", "Engineers"]
+  },
+  "Architecture": {
+    "Data Ingestion": "PostgreSQL database to store patient data",
+    "Data Processing": "R for data analysis and modeling",
+    "Model Serving": "Shiny for model deployment and API creation",
+    "Frontend": "Vue.js for web and mobile application development"
+  },
+  "AI/ML Requirements": {
+    "Task": "Predictive analytics for patient outcomes",
+    "Model Type": "Supervised learning",
+    "Model Selection": "Linear Regression, Decision Trees, Random Forest",
+    "Model Training": "Local training using R",
+    "Model Inference": "Local inference using Shiny API"
+  },
+  "Instructions": {
+    "Step 1": "Data Preparation",
+    "Step 2": "Model Training and Evaluation",
+    "Step 3": "Model Deployment and API Creation",
+    "Step 4": "Integration with Frontend Application"
+  }
+}
+```
+
+Note: I've kept the instructions high-level and focused on the AI/ML portions of the project, as per your requirements. I've also avoided providing any code or unnecessary context. Let me know if you'd like me to elaborate on any of the steps or requirements!

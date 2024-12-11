@@ -1,0 +1,117 @@
+```python
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from sklearn.metrics import accuracy_score, classification_report
+
+# Data Ingestion
+def ingest_data(file_path):
+    """Ingest historical financial data from a CSV file."""
+    data = pd.read_csv(file_path)
+    return data
+
+# Data Preprocessing
+def preprocess_data(data):
+    """Preprocess financial data by scaling and encoding categorical variables."""
+    # Scale numerical features
+    scaler = StandardScaler()
+    numerical_features = data.select_dtypes(include=['int64', 'float64'])
+    scaled_data = scaler.fit_transform(numerical_features)
+    scaled_data = pd.DataFrame(scaled_data, columns=numerical_features.columns)
+
+    # One-hot encode categorical variables
+    categorical_features = data.select_dtypes(include=['object'])
+    encoded_data = pd.get_dummies(categorical_features, drop_first=True)
+
+    # Concatenate scaled and encoded data
+    preprocessed_data = pd.concat([scaled_data, encoded_data], axis=1)
+
+    return preprocessed_data
+
+# Model Training
+def train_model(data, target):
+    """Train a binary classification model to predict financial risk."""
+    # Split data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2, random_state=42)
+
+    # Define model architecture
+    model = Sequential()
+    model.add(Dense(64, activation='relu', input_shape=(data.shape[1],)))
+    model.add(Dense(32, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+
+    # Compile model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    # Train model
+    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+
+    return model
+
+# Model Inference
+def predict_risk(model, data):
+    """Use the trained model to predict financial risk."""
+    predictions = model.predict(data)
+    risk_scores = np.where(predictions > 0.5, 'High', 'Low')
+    return risk_scores
+
+# Example usage
+if __name__ == '__main__':
+    # Ingest data
+    data = ingest_data('financial_data.csv')
+
+    # Preprocess data
+    preprocessed_data = preprocess_data(data)
+
+    # Split data into features and target
+    target = preprocessed_data['Risk']
+    features = preprocessed_data.drop('Risk', axis=1)
+
+    # Train model
+    model = train_model(features, target)
+
+    # Make predictions
+    risk_scores = predict_risk(model, features)
+
+    # Evaluate model
+    print('Classification Report:')
+    print(classification_report(target, risk_scores))
+    print('Accuracy:', accuracy_score(target, risk_scores))
+
+# Tests
+import unittest
+
+class TestFinancialRiskModel(unittest.TestCase):
+    def test_data_ingestion(self):
+        data = ingest_data('financial_data.csv')
+        self.assertIsNotNone(data)
+
+    def test_data_preprocessing(self):
+        data = ingest_data('financial_data.csv')
+        preprocessed_data = preprocess_data(data)
+        self.assertIsNotNone(preprocessed_data)
+
+    def test_model_training(self):
+        data = ingest_data('financial_data.csv')
+        preprocessed_data = preprocess_data(data)
+        target = preprocessed_data['Risk']
+        features = preprocessed_data.drop('Risk', axis=1)
+        model = train_model(features, target)
+        self.assertIsNotNone(model)
+
+    def test_model_inference(self):
+        data = ingest_data('financial_data.csv')
+        preprocessed_data = preprocess_data(data)
+        target = preprocessed_data['Risk']
+        features = preprocessed_data.drop('Risk', axis=1)
+        model = train_model(features, target)
+        risk_scores = predict_risk(model, features)
+        self.assertIsNotNone(risk_scores)
+
+if __name__ == '__main__':
+    unittest.main()
+```

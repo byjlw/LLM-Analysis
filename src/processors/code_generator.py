@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from src.utils.file_handler import FileHandler
 from src.utils.openrouter import OpenRouterClient
+from src.utils.process_prompts import generate_code
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +92,8 @@ class CodeGenerator:
             # Combine prompt with requirements
             full_prompt = f"{prompt}\n{requirements}"
             
-            # Generate code using OpenRouter
-            code = self.openrouter_client.generate_code(full_prompt)
+            # Generate code using process_prompts
+            code = generate_code(self.openrouter_client, full_prompt)
             if not code:
                 logger.error("Failed to generate code")
                 return False

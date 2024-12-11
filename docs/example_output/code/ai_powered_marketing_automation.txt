@@ -1,0 +1,121 @@
+**data_ingestion.py**
+```python
+import pandas as pd
+from sqlalchemy import create_engine
+
+def ingest_customer_data(engine):
+    """Ingest customer data from PostgreSQL database"""
+    query = "SELECT * FROM customers"
+    customer_data = pd.read_sql_query(query, engine)
+    return customer_data
+
+def ingest_marketing_campaign_data(engine):
+    """Ingest marketing campaign data from PostgreSQL database"""
+    query = "SELECT * FROM marketing_campaigns"
+    marketing_campaign_data = pd.read_sql_query(query, engine)
+    return marketing_campaign_data
+
+def main():
+    engine = create_engine('postgresql://user:password@host:port/dbname')
+    customer_data = ingest_customer_data(engine)
+    marketing_campaign_data = ingest_marketing_campaign_data(engine)
+    return customer_data, marketing_campaign_data
+
+if __name__ == "__main__":
+    customer_data, marketing_campaign_data = main()
+    print(customer_data.head())
+    print(marketing_campaign_data.head())
+```
+
+**model_training.py**
+```python
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+def train_model(customer_data, marketing_campaign_data):
+    """Train a random forest model to predict customer engagement"""
+    X = pd.concat([customer_data, marketing_campaign_data], axis=1)
+    y = customer_data['engagement']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy:.3f}, Precision: {precision:.3f}, Recall: {recall:.3f}, F1-score: {f1:.3f}")
+    return model
+
+def main():
+    customer_data, marketing_campaign_data = data_ingestion.main()
+    model = train_model(customer_data, marketing_campaign_data)
+    return model
+
+if __name__ == "__main__":
+    model = main()
+```
+
+**model_inference.py**
+```python
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+
+def generate_customer_engagement_score(model, new_marketing_campaign_data):
+    """Generate customer engagement score for new marketing campaign data"""
+    X = pd.DataFrame(new_marketing_campaign_data)
+    y_pred = model.predict(X)
+    return y_pred
+
+def main():
+    model = model_training.main()
+    new_marketing_campaign_data = pd.DataFrame({'campaign_id': [1], 'campaign_name': ['new_campaign']})
+    customer_engagement_score = generate_customer_engagement_score(model, new_marketing_campaign_data)
+    print(customer_engagement_score)
+
+if __name__ == "__main__":
+    main()
+```
+
+**app.py**
+```python
+from flask import Flask, request, jsonify
+from model_inference import generate_customer_engagement_score
+
+app = Flask(__name__)
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    new_marketing_campaign_data = request.get_json()
+    model = model_training.main()
+    customer_engagement_score = generate_customer_engagement_score(model, new_marketing_campaign_data)
+    return jsonify({'customer_engagement_score': customer_engagement_score})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+**tests.py**
+```python
+import unittest
+from model_training import train_model
+from model_inference import generate_customer_engagement_score
+
+class TestModelTraining(unittest.TestCase):
+    def test_train_model(self):
+        customer_data, marketing_campaign_data = data_ingestion.main()
+        model = train_model(customer_data, marketing_campaign_data)
+        self.assertIsNotNone(model)
+
+class TestModelInference(unittest.TestCase):
+    def test_generate_customer_engagement_score(self):
+        model = train_model(data_ingestion.main())
+        new_marketing_campaign_data = pd.DataFrame({'campaign_id': [1], 'campaign_name': ['new_campaign']})
+        customer_engagement_score = generate_customer_engagement_score(model, new_marketing_campaign_data)
+        self.assertIsNotNone(customer_engagement_score)
+
+if __name__ == "__main__":
+    unittest.main()
+```

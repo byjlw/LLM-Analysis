@@ -1,0 +1,279 @@
+```java
+// DataCollector.java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@SpringBootApplication
+@RestController
+public class DataCollector {
+
+    private List<NetworkTrafficData> networkTrafficDataList = new ArrayList<>();
+
+    @GetMapping("/collect-data")
+    public String collectData() {
+        // Simulate collecting network traffic data from network devices
+        for (int i = 0; i < 100; i++) {
+            NetworkTrafficData data = new NetworkTrafficData();
+            data.setSourceIp("192.168.1." + i);
+            data.setDestinationIp("8.8.8.8");
+            data.setPacketSize(1000);
+            networkTrafficDataList.add(data);
+        }
+        return "Data collected successfully";
+    }
+
+    public List<NetworkTrafficData> getNetworkTrafficDataList() {
+        return networkTrafficDataList;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DataCollector.class, args);
+    }
+}
+
+class NetworkTrafficData {
+    private String sourceIp;
+    private String destinationIp;
+    private int packetSize;
+
+    public String getSourceIp() {
+        return sourceIp;
+    }
+
+    public void setSourceIp(String sourceIp) {
+        this.sourceIp = sourceIp;
+    }
+
+    public String getDestinationIp() {
+        return destinationIp;
+    }
+
+    public void setDestinationIp(String destinationIp) {
+        this.destinationIp = destinationIp;
+    }
+
+    public int getPacketSize() {
+        return packetSize;
+    }
+
+    public void setPacketSize(int packetSize) {
+        this.packetSize = packetSize;
+    }
+}
+```
+
+```java
+// DataPreprocessor.java
+import org.deeplearning4j.datasets.iterator.impl.ListIterator;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.DataSet;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.Nesterovs;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DataPreprocessor {
+
+    public INDArray preprocessData(List<NetworkTrafficData> networkTrafficDataList) {
+        // Simulate preprocessing the collected data
+        INDArray inputData = Nd4j.create(networkTrafficDataList.size(), 3);
+        INDArray outputData = Nd4j.create(networkTrafficDataList.size(), 1);
+        for (int i = 0; i < networkTrafficDataList.size(); i++) {
+            NetworkTrafficData data = networkTrafficDataList.get(i);
+            inputData.putScalar(i, 0, data.getSourceIp().hashCode());
+            inputData.putScalar(i, 1, data.getDestinationIp().hashCode());
+            inputData.putScalar(i, 2, data.getPacketSize());
+            outputData.putScalar(i, 0, 1); // Simulate output data
+        }
+        return inputData;
+    }
+
+    public MultiLayerNetwork createModel() {
+        MultiLayerNetwork model = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
+               .seed(42)
+               .weightInit(WeightInit.XAVIER)
+               .updater(new Nesterovs(0.1))
+               .list()
+               .layer(0, new DenseLayer.Builder().nIn(3).nOut(10).activation(Activation.RELU).build())
+               .layer(1, new OutputLayer.Builder().nIn(10).nOut(1).activation(Activation.IDENTITY).lossFunction(LossFunctions.LossFunction.MSE).build())
+               .pretrain(false).backprop(true).build());
+        model.init();
+        return model;
+    }
+
+    public void trainModel(MultiLayerNetwork model, INDArray inputData, INDArray outputData) {
+        DataSet dataSet = new DataSet(inputData, outputData);
+        DataSetIterator iterator = new ListIterator<>(dataSet, 10);
+        model.fit(iterator);
+    }
+
+    public INDArray predict(MultiLayerNetwork model, INDArray inputData) {
+        return model.output(inputData);
+    }
+}
+```
+
+```java
+// Optimizer.java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+
+public class Optimizer {
+
+    public void applyOptimalSettings(MultiLayerNetwork model, INDArray inputData) {
+        // Simulate applying the predicted optimal network settings to the network devices
+        INDArray output = model.output(inputData);
+        System.out.println("Optimal settings: " + output);
+    }
+}
+```
+
+```java
+// Main.java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+
+public class Main {
+
+    public static void main(String[] args) {
+        DataCollector dataCollector = new DataCollector();
+        dataCollector.collectData();
+
+        DataPreprocessor dataPreprocessor = new DataPreprocessor();
+        INDArray inputData = dataPreprocessor.preprocessData(dataCollector.getNetworkTrafficDataList());
+
+        MultiLayerNetwork model = dataPreprocessor.createModel();
+        dataPreprocessor.trainModel(model, inputData, Nd4j.create(dataCollector.getNetworkTrafficDataList().size(), 1));
+
+        Optimizer optimizer = new Optimizer();
+        optimizer.applyOptimalSettings(model, inputData);
+    }
+}
+```
+
+```java
+// NetworkTrafficDataTest.java
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class NetworkTrafficDataTest {
+
+    @Test
+    public void testNetworkTrafficData() {
+        NetworkTrafficData data = new NetworkTrafficData();
+        data.setSourceIp("192.168.1.1");
+        data.setDestinationIp("8.8.8.8");
+        data.setPacketSize(1000);
+
+        assertEquals("192.168.1.1", data.getSourceIp());
+        assertEquals("8.8.8.8", data.getDestinationIp());
+        assertEquals(1000, data.getPacketSize());
+    }
+}
+```
+
+```java
+// DataPreprocessorTest.java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class DataPreprocessorTest {
+
+    @Test
+    public void testPreprocessData() {
+        DataPreprocessor dataPreprocessor = new DataPreprocessor();
+        List<NetworkTrafficData> networkTrafficDataList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            NetworkTrafficData data = new NetworkTrafficData();
+            data.setSourceIp("192.168.1." + i);
+            data.setDestinationIp("8.8.8.8");
+            data.setPacketSize(1000);
+            networkTrafficDataList.add(data);
+        }
+        INDArray inputData = dataPreprocessor.preprocessData(networkTrafficDataList);
+        assertNotNull(inputData);
+    }
+
+    @Test
+    public void testCreateModel() {
+        DataPreprocessor dataPreprocessor = new DataPreprocessor();
+        MultiLayerNetwork model = dataPreprocessor.createModel();
+        assertNotNull(model);
+    }
+
+    @Test
+    public void testTrainModel() {
+        DataPreprocessor dataPreprocessor = new DataPreprocessor();
+        MultiLayerNetwork model = dataPreprocessor.createModel();
+        List<NetworkTrafficData> networkTrafficDataList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            NetworkTrafficData data = new NetworkTrafficData();
+            data.setSourceIp("192.168.1." + i);
+            data.setDestinationIp("8.8.8.8");
+            data.setPacketSize(1000);
+            networkTrafficDataList.add(data);
+        }
+        INDArray inputData = dataPreprocessor.preprocessData(networkTrafficDataList);
+        dataPreprocessor.trainModel(model, inputData, Nd4j.create(networkTrafficDataList.size(), 1));
+        assertNotNull(model);
+    }
+
+    @Test
+    public void testPredict() {
+        DataPreprocessor dataPreprocessor = new DataPreprocessor();
+        MultiLayerNetwork model = dataPreprocessor.createModel();
+        List<NetworkTrafficData> networkTrafficDataList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            NetworkTrafficData data = new NetworkTrafficData();
+            data.setSourceIp("192.168.1." + i);
+            data.setDestinationIp("8.8.8.8");
+            data.setPacketSize(1000);
+            networkTrafficDataList.add(data);
+        }
+        INDArray inputData = dataPreprocessor.preprocessData(networkTrafficDataList);
+        INDArray output = dataPreprocessor.predict(model, inputData);
+        assertNotNull(output);
+    }
+}
+```
+
+```java
+// OptimizerTest.java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class OptimizerTest {
+
+    @Test
+    public void testApplyOptimalSettings() {
+        Optimizer optimizer = new Optimizer();
+        DataPreprocessor dataPreprocessor = new DataPreprocessor();
+        MultiLayerNetwork model = dataPreprocessor.createModel();
+        List<NetworkTrafficData> networkTrafficDataList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            NetworkTrafficData data = new NetworkTrafficData();
+            data.setSourceIp("192.168.1." + i);
+            data.setDestinationIp("8.8.8.8");
+            data.setPacketSize(1000);
+            networkTrafficDataList.add(data);
+        }
+        INDArray inputData = dataPreprocessor.preprocessData(networkTrafficDataList);
+        optimizer.applyOptimalSettings(model, inputData);
+        assertNotNull(model);
+    }
+}
+```

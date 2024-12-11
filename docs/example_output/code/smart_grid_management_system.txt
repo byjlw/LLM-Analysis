@@ -1,0 +1,141 @@
+**SmartGridManagementSystem.java**
+```java
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SmartGridManagementSystem {
+    private MultiLayerNetwork model;
+
+    public SmartGridManagementSystem() {
+        initModel();
+    }
+
+    private void initModel() {
+        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+               .seed(123)
+               .weightInit(WeightInit.XAVIER)
+               .updater(new Nesterovs(0.1))
+               .list()
+               .layer(0, new DenseLayer.Builder()
+                       .nIn(24) // input features (24 hours in a day)
+                       .nOut(50)
+                       .activation(Activation.RELU)
+                       .build())
+               .layer(1, new OutputLayer.Builder()
+                       .nIn(50)
+                       .nOut(1) // output (predicted energy demand)
+                       .activation(Activation.IDENTITY)
+                       .lossFunction(LossFunctions.LossFunction.MSE)
+                       .build())
+               .pretrain(false).backprop(true).build();
+
+        model = new MultiLayerNetwork(conf);
+        model.init();
+    }
+
+    public double predictEnergyDemand(double[] input) {
+        INDArray inputArr = Nd4j.create(input);
+        INDArray output = model.output(inputArr);
+        return output.getDouble(0);
+    }
+
+    public boolean detectAnomaly(double[] input) {
+        // implement anomaly detection using One-Class SVM or Isolation Forest
+        // for simplicity, we'll use a basic threshold-based approach
+        double predictedDemand = predictEnergyDemand(input);
+        double threshold = 1.2; // adjust this value based on historical data
+        return Math.abs(predictedDemand - getActualDemand(input)) > threshold;
+    }
+
+    private double getActualDemand(double[] input) {
+        // implement a function to get the actual energy demand for a given input
+        // for simplicity, we'll return a constant value
+        return 100.0;
+    }
+
+    public static void main(String[] args) {
+        SmartGridManagementSystem system = new SmartGridManagementSystem();
+        double[] input = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+        double predictedDemand = system.predictEnergyDemand(input);
+        System.out.println("Predicted energy demand: " + predictedDemand);
+        boolean anomalyDetected = system.detectAnomaly(input);
+        System.out.println("Anomaly detected: " + anomalyDetected);
+    }
+}
+```
+
+**DataIngestion.java**
+```java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@SpringBootApplication
+@RestController
+public class DataIngestion {
+    private List<double[]> data = new ArrayList<>();
+
+    @GetMapping("/ingest")
+    public String ingestData(@RequestParam("data") String dataStr) {
+        String[] values = dataStr.split(",");
+        double[] valuesDouble = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            valuesDouble[i] = Double.parseDouble(values[i]);
+        }
+        data.add(valuesDouble);
+        return "Data ingested successfully";
+    }
+
+    public List<double[]> getData() {
+        return data;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DataIngestion.class, args);
+    }
+}
+```
+
+**DataProcessingTest.java**
+```java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.junit.Test;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
+import static org.junit.Assert.assertEquals;
+
+public class DataProcessingTest {
+    @Test
+    public void testPredictEnergyDemand() {
+        SmartGridManagementSystem system = new SmartGridManagementSystem();
+        double[] input = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+        double predictedDemand = system.predictEnergyDemand(input);
+        assertEquals(100.0, predictedDemand, 1e-6);
+    }
+
+    @Test
+    public void testDetectAnomaly() {
+        SmartGridManagementSystem system = new SmartGridManagementSystem();
+        double[] input = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+        boolean anomalyDetected = system.detectAnomaly(input);
+        assertEquals(false, anomalyDetected);
+    }
+}
+```

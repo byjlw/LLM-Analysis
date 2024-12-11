@@ -1,0 +1,167 @@
+```r
+# Required Libraries
+library(shiny)
+library(RPostgreSQL)
+library(caret)
+library(randomForest)
+
+# PostgreSQL Connection
+con <- dbConnect(PostgreSQL(),
+                 host = "localhost",
+                 port = 5432,
+                 dbname = "healthcare_db",
+                 user = "username",
+                 password = "password")
+
+# Data Preparation
+patient_data <- dbGetQuery(con, "SELECT * FROM patient_outcomes")
+
+# Data Preprocessing
+set.seed(123)
+trainIndex <- createDataPartition(patient_data$outcome, p = 0.7, list = FALSE)
+trainSet <- patient_data[trainIndex,]
+testSet <- patient_data[-trainIndex,]
+
+# Model Training and Evaluation
+linear_model <- lm(outcome ~., data = trainSet)
+decision_tree_model <- tree(outcome ~., data = trainSet)
+random_forest_model <- randomForest(outcome ~., data = trainSet)
+
+# Model Evaluation
+linear_pred <- predict(linear_model, testSet)
+decision_tree_pred <- predict(decision_tree_model, testSet)
+random_forest_pred <- predict(random_forest_model, testSet)
+
+# Model Performance Metrics
+linear_rmse <- sqrt(mean((testSet$outcome - linear_pred)^2))
+decision_tree_rmse <- sqrt(mean((testSet$outcome - decision_tree_pred)^2))
+random_forest_rmse <- sqrt(mean((testSet$outcome - random_forest_pred)^2))
+
+# Model Deployment and API Creation
+shinyApp(
+  ui = fluidPage(
+    titlePanel("Patient Outcomes Predictive Analytics"),
+    sidebarLayout(
+      sidebarPanel(
+        sliderInput("age", "Patient Age", min = 18, max = 100, value = 30),
+        sliderInput("bmi", "Patient BMI", min = 15, max = 40, value = 25),
+        actionButton("predict", "Predict Outcome")
+      ),
+      mainPanel(
+        textOutput("prediction")
+      )
+    )
+  ),
+  server = function(input, output) {
+    prediction <- eventReactive(input$predict, {
+      new_patient_data <- data.frame(age = input$age, bmi = input$bmi)
+      linear_pred <- predict(linear_model, new_patient_data)
+      decision_tree_pred <- predict(decision_tree_model, new_patient_data)
+      random_forest_pred <- predict(random_forest_model, new_patient_data)
+      paste("Linear Regression:", linear_pred, "Decision Tree:", decision_tree_pred, "Random Forest:", random_forest_pred)
+    })
+    output$prediction <- renderText({
+      prediction()
+    })
+  }
+)
+
+# Unit Tests
+test_linear_model <- function() {
+  linear_pred <- predict(linear_model, trainSet)
+  linear_rmse <- sqrt(mean((trainSet$outcome - linear_pred)^2))
+  if (linear_rmse < 10) {
+    print("Linear Model Test Passed")
+  } else {
+    print("Linear Model Test Failed")
+  }
+}
+
+test_decision_tree_model <- function() {
+  decision_tree_pred <- predict(decision_tree_model, trainSet)
+  decision_tree_rmse <- sqrt(mean((trainSet$outcome - decision_tree_pred)^2))
+  if (decision_tree_rmse < 10) {
+    print("Decision Tree Model Test Passed")
+  } else {
+    print("Decision Tree Model Test Failed")
+  }
+}
+
+test_random_forest_model <- function() {
+  random_forest_pred <- predict(random_forest_model, trainSet)
+  random_forest_rmse <- sqrt(mean((trainSet$outcome - random_forest_pred)^2))
+  if (random_forest_rmse < 10) {
+    print("Random Forest Model Test Passed")
+  } else {
+    print("Random Forest Model Test Failed")
+  }
+}
+
+# Run Unit Tests
+test_linear_model()
+test_decision_tree_model()
+test_random_forest_model()
+```
+
+```javascript
+// Vue.js Frontend Application
+import Vue from 'vue'
+import App from './App.vue'
+
+Vue.config.productionTip = false
+
+new Vue({
+  render: h => h(App)
+}).$mount('#app')
+```
+
+```sql
+-- PostgreSQL Database Schema
+CREATE TABLE patient_outcomes (
+  id SERIAL PRIMARY KEY,
+  age INTEGER,
+  bmi REAL,
+  outcome REAL
+);
+
+CREATE TABLE model_performance (
+  id SERIAL PRIMARY KEY,
+  model_name VARCHAR(255),
+  rmse REAL
+);
+```
+
+```css
+/* CSS Styles for Vue.js Frontend Application */
+body {
+  font-family: Arial, sans-serif;
+}
+
+#app {
+  width: 80%;
+  margin: 40px auto;
+  text-align: center;
+}
+
+.slider-container {
+  margin: 20px 0;
+}
+
+.slider {
+  width: 50%;
+  margin: 0 auto;
+}
+
+.predict-button {
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.predict-button:hover {
+  background-color: #3e8e41;
+}
+```

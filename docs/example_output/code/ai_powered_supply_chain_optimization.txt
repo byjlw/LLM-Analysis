@@ -1,0 +1,207 @@
+```java
+// DataIngestionModule.java
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+@SpringBootApplication
+public class DataIngestionModule {
+
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/supply_chain");
+        dataSource.setUsername("root");
+        dataSource.setPassword("password");
+        return dataSource;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(DataIngestionModule.class, args);
+    }
+
+    public void ingestData(String data) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/supply_chain", "root", "password")) {
+            PreparedStatement pstmt = conn.prepareStatement("INSERT INTO supply_chain_data (data) VALUES (?)");
+            pstmt.setString(1, data);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error ingesting data: " + e.getMessage());
+        }
+    }
+}
+
+// DataPreprocessingModule.java
+import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DataPreprocessingModule {
+
+    public List<Double> cleanAndPreprocessData(List<Double> data) {
+        List<Double> cleanedData = new ArrayList<>();
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        for (double value : data) {
+            stats.addValue(value);
+        }
+
+        double mean = stats.getMean();
+        double stdDev = stats.getStandardDeviation();
+
+        for (double value : data) {
+            double normalizedValue = (value - mean) / stdDev;
+            cleanedData.add(normalizedValue);
+        }
+
+        return cleanedData;
+    }
+
+    public void handleMissingValues(List<Double> data) {
+        List<Double> filledData = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            if (data.get(i) == null) {
+                filledData.add(data.get(i - 1));
+            } else {
+                filledData.add(data.get(i));
+            }
+        }
+    }
+
+    public void handleOutliers(List<Double> data) {
+        List<Double> cleanedData = new ArrayList<>();
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        for (double value : data) {
+            stats.addValue(value);
+        }
+
+        double mean = stats.getMean();
+        double stdDev = stats.getStandardDeviation();
+
+        for (double value : data) {
+            if (Math.abs(value - mean) > 2 * stdDev) {
+                cleanedData.add(mean);
+            } else {
+                cleanedData.add(value);
+            }
+        }
+    }
+}
+
+// MachineLearningModel.java
+import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.optimize.api.BaseTrainingListener;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.DataSet;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+public class MachineLearningModel {
+
+    public MultiLayerNetwork trainModel(List<DataSet> trainingData) {
+        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+               .seed(42)
+               .weightInit(org.deeplearning4j.nn.weights.WeightInit.XAVIER)
+               .updater(new Nesterovs(0.1))
+               .list()
+               .layer(0, new DenseLayer.Builder().nIn(10).nOut(20).activation(Activation.RELU).build())
+               .layer(1, new OutputLayer.Builder().lossFunction(LossFunctions.LossFunction.MSE).nIn(20).nOut(1).activation(Activation.IDENTITY).build())
+               .pretrain(false).backprop(true).build();
+
+        MultiLayerNetwork model = new MultiLayerNetwork(conf);
+        model.init();
+
+        model.setListeners(new ScoreIterationListener(10));
+
+        for (DataSet dataSet : trainingData) {
+            model.fit(dataSet);
+        }
+
+        return model;
+    }
+
+    public INDArray makePrediction(INDArray input) {
+        MultiLayerNetwork model = trainModel(new ArrayList<>());
+        return model.output(input);
+    }
+}
+
+// InferenceModule.java
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.api.ndarray.INDArray;
+
+public class InferenceModule {
+
+    public String makeRecommendation(INDArray input) {
+        MachineLearningModel model = new MachineLearningModel();
+        INDArray output = model.makePrediction(input);
+        return "Recommendation: " + output.toString();
+    }
+}
+
+// TestClass.java
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class TestClass {
+
+    @Test
+    public void testIngestData() {
+        DataIngestionModule ingestionModule = new DataIngestionModule();
+        ingestionModule.ingestData("Test data");
+        // Verify data is ingested into database
+    }
+
+    @Test
+    public void testCleanAndPreprocessData() {
+        DataPreprocessingModule preprocessingModule = new DataPreprocessingModule();
+        List<Double> data = new ArrayList<>();
+        data.add(1.0);
+        data.add(2.0);
+        data.add(3.0);
+        List<Double> cleanedData = preprocessingModule.cleanAndPreprocessData(data);
+        // Verify data is cleaned and preprocessed
+    }
+
+    @Test
+    public void testTrainModel() {
+        MachineLearningModel model = new MachineLearningModel();
+        List<DataSet> trainingData = new ArrayList<>();
+        // Add training data to list
+        MultiLayerNetwork trainedModel = model.trainModel(trainingData);
+        // Verify model is trained
+    }
+
+    @Test
+    public void testMakePrediction() {
+        MachineLearningModel model = new MachineLearningModel();
+        INDArray input = Nd4j.create(new double[]{1, 2, 3});
+        INDArray output = model.makePrediction(input);
+        // Verify prediction is made
+    }
+
+    @Test
+    public void testMakeRecommendation() {
+        InferenceModule inferenceModule = new InferenceModule();
+        INDArray input = Nd4j.create(new double[]{1, 2, 3});
+        String recommendation = inferenceModule.makeRecommendation(input);
+        // Verify recommendation is made
+    }
+}
+```

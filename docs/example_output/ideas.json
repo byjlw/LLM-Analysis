@@ -1,7 +1,7 @@
 [
   {
-    "Product Idea": "Intelligent Virtual Assistant for Customer Support",
-    "Problem it solves": "Reduces customer wait times and improves support experience",
+    "Product Idea": "Intelligent Customer Service Chatbot",
+    "Problem it solves": "Reduces customer support queries by providing instant answers",
     "Software Techstack": [
       "Node.js",
       "Express",
@@ -9,463 +9,142 @@
       "React"
     ],
     "Target hardware expectations": [
-      "Servers",
-      "Cloud infrastructure"
+      "Web browsers",
+      "Mobile devices"
     ],
-    "Company profile": "Software as a Service (SaaS)",
+    "Company profile": "Software as a Service",
     "Engineering profile": "Full-stack developers"
   },
   {
-    "Product Idea": "Predictive Analytics for Supply Chain Optimization",
-    "Problem it solves": "Reduces inventory costs and improves delivery times",
+    "Product Idea": "Predictive Quality Control for Manufacturing",
+    "Problem it solves": "Reduces defective products by predicting quality issues",
     "Software Techstack": [
       "Java",
       "Spring Boot",
       "MySQL",
-      "Tableau"
+      "Angular"
     ],
     "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
+      "Industrial machines",
+      "Quality control devices"
     ],
-    "Company profile": "Logistics and transportation",
-    "Engineering profile": "Data engineers and analysts"
+    "Company profile": "Manufacturing and production",
+    "Engineering profile": "Industrial automation engineers"
   },
   {
-    "Product Idea": "AI-powered Chatbots for Mental Health Support",
-    "Problem it solves": "Provides accessible mental health support and resources",
+    "Product Idea": "AI-powered Virtual Event Planning",
+    "Problem it solves": "Streamlines event planning and management",
     "Software Techstack": [
       "Python",
       "Django",
       "PostgreSQL",
-      "Flutter"
+      "Vue.js"
     ],
     "Target hardware expectations": [
-      "Mobile devices",
-      "Web browsers"
+      "Web browsers",
+      "Mobile devices"
     ],
-    "Company profile": "Healthcare technology",
-    "Engineering profile": "Mobile and web developers"
+    "Company profile": "Event management software",
+    "Engineering profile": "Web and mobile engineers"
   },
   {
-    "Product Idea": "Automated Quality Control for Manufacturing",
-    "Problem it solves": "Reduces defect rates and improves product quality",
+    "Product Idea": "Smart Home Automation System",
+    "Problem it solves": "Enhances home convenience and energy efficiency",
     "Software Techstack": [
       "C++",
-      "Qt",
-      "SQLite",
-      "OpenCV"
-    ],
-    "Target hardware expectations": [
-      "Industrial cameras",
-      "Machine vision systems"
-    ],
-    "Company profile": "Industrial automation",
-    "Engineering profile": "Computer vision engineers"
-  },
-  {
-    "Product Idea": "Personalized Recommendations for E-commerce",
-    "Problem it solves": "Improves customer engagement and increases sales",
-    "Software Techstack": [
-      "Ruby on Rails",
-      "PostgreSQL",
-      "Vue.js",
-      "Redis"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Cloud infrastructure"
-    ],
-    "Company profile": "E-commerce platform",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "Intelligent Home Automation System",
-    "Problem it solves": "Improves home convenience and energy efficiency",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React Native"
+      "Arduino",
+      "WiFi",
+      "iOS"
     ],
     "Target hardware expectations": [
       "Smart home devices",
       "IoT sensors"
     ],
     "Company profile": "Consumer electronics",
-    "Engineering profile": "IoT and embedded systems engineers"
+    "Engineering profile": "Embedded systems engineers"
   },
   {
-    "Product Idea": "AI-powered Language Translation for Travel",
-    "Problem it solves": "Improves communication for travelers in foreign countries",
+    "Product Idea": "Personalized Health and Wellness Platform",
+    "Problem it solves": "Provides tailored health recommendations",
     "Software Techstack": [
-      "Python",
-      "Flask",
+      "Ruby on Rails",
       "PostgreSQL",
-      "Angular"
+      "React Native"
     ],
     "Target hardware expectations": [
       "Mobile devices",
       "Wearables"
     ],
-    "Company profile": "Travel technology",
-    "Engineering profile": "Mobile and web developers"
+    "Company profile": "Health and wellness software",
+    "Engineering profile": "Mobile and web engineers"
   },
   {
-    "Product Idea": "Predictive Maintenance for Wind Turbines",
-    "Problem it solves": "Reduces downtime and improves energy production",
-    "Software Techstack": [
-      "C#",
-      "ASP.NET",
-      "SQL Server",
-      "Windows Forms"
-    ],
-    "Target hardware expectations": [
-      "IoT sensors",
-      "Edge devices"
-    ],
-    "Company profile": "Renewable energy",
-    "Engineering profile": "IoT and embedded systems engineers"
-  },
-  {
-    "Product Idea": "AI-driven Content Generation for Social Media",
-    "Problem it solves": "Improves social media engagement and reduces content creation time",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Cloud infrastructure"
-    ],
-    "Company profile": "Social media management",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "Intelligent Surveillance System for Public Safety",
-    "Problem it solves": "Improves public safety and reduces crime rates",
+    "Product Idea": "Intelligent Supply Chain Management",
+    "Problem it solves": "Optimizes supply chain operations and reduces costs",
     "Software Techstack": [
       "Java",
       "Spring Boot",
       "MySQL",
-      "OpenCV"
-    ],
-    "Target hardware expectations": [
-      "Surveillance cameras",
-      "Edge devices"
-    ],
-    "Company profile": "Public safety and security",
-    "Engineering profile": "Computer vision engineers"
-  },
-  {
-    "Product Idea": "AI-powered Virtual Wardrobe for Fashion",
-    "Problem it solves": "Improves fashion shopping experience and reduces returns",
-    "Software Techstack": [
-      "Python",
-      "Django",
-      "PostgreSQL",
-      "Flutter"
-    ],
-    "Target hardware expectations": [
-      "Mobile devices",
-      "Web browsers"
-    ],
-    "Company profile": "Fashion e-commerce",
-    "Engineering profile": "Mobile and web developers"
-  },
-  {
-    "Product Idea": "Predictive Analytics for Financial Risk Management",
-    "Problem it solves": "Reduces financial risk and improves investment decisions",
-    "Software Techstack": [
-      "R",
-      "Shiny",
-      "PostgreSQL",
-      "Tableau"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
-    ],
-    "Company profile": "Financial services",
-    "Engineering profile": "Data engineers and analysts"
-  },
-  {
-    "Product Idea": "AI-driven Customer Segmentation for Marketing",
-    "Problem it solves": "Improves marketing targeting and increases customer engagement",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Cloud infrastructure"
-    ],
-    "Company profile": "Marketing automation",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "Intelligent Robot for Warehouse Automation",
-    "Problem it solves": "Improves warehouse efficiency and reduces labor costs",
-    "Software Techstack": [
-      "C++",
-      "ROS",
-      "SQLite",
-      "OpenCV"
-    ],
-    "Target hardware expectations": [
-      "Industrial robots",
-      "Warehouse automation systems"
-    ],
-    "Company profile": "Industrial automation",
-    "Engineering profile": "Robotics engineers"
-  },
-  {
-    "Product Idea": "AI-powered Medical Diagnosis for Healthcare",
-    "Problem it solves": "Improves medical diagnosis accuracy and reduces diagnosis time",
-    "Software Techstack": [
-      "Python",
-      "Flask",
-      "PostgreSQL",
       "Angular"
     ],
     "Target hardware expectations": [
-      "Medical imaging devices",
-      "Clinical decision support systems"
+      "Enterprise servers",
+      "Logistics devices"
     ],
-    "Company profile": "Healthcare technology",
-    "Engineering profile": "Healthcare IT engineers"
+    "Company profile": "Logistics and supply chain management",
+    "Engineering profile": "Enterprise software engineers"
   },
   {
-    "Product Idea": "Predictive Maintenance for Aerospace Engineering",
-    "Problem it solves": "Reduces downtime and improves aircraft safety",
-    "Software Techstack": [
-      "C#",
-      "ASP.NET",
-      "SQL Server",
-      "Windows Forms"
-    ],
-    "Target hardware expectations": [
-      "IoT sensors",
-      "Edge devices"
-    ],
-    "Company profile": "Aerospace engineering",
-    "Engineering profile": "IoT and embedded systems engineers"
-  },
-  {
-    "Product Idea": "AI-driven Chatbots for Customer Onboarding",
-    "Problem it solves": "Improves customer onboarding experience and reduces support queries",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React"
-    ],
-    "Target hardware expectations": [
-      "Mobile devices",
-      "Web browsers"
-    ],
-    "Company profile": "Software as a Service (SaaS)",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "Intelligent Supply Chain Management for Retail",
-    "Problem it solves": "Improves supply chain efficiency and reduces inventory costs",
-    "Software Techstack": [
-      "Java",
-      "Spring Boot",
-      "MySQL",
-      "Tableau"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
-    ],
-    "Company profile": "Retail and e-commerce",
-    "Engineering profile": "Data engineers and analysts"
-  },
-  {
-    "Product Idea": "AI-powered Predictive Modeling for Climate Change",
-    "Problem it solves": "Improves climate change prediction and reduces environmental impact",
-    "Software Techstack": [
-      "R",
-      "Shiny",
-      "PostgreSQL",
-      "Tableau"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
-    ],
-    "Company profile": "Environmental sustainability",
-    "Engineering profile": "Data engineers and analysts"
-  },
-  {
-    "Product Idea": "Intelligent Virtual Event Platform for Conferences",
-    "Problem it solves": "Improves virtual event experience and increases attendee engagement",
-    "Software Techstack": [
-      "Python",
-      "Django",
-      "PostgreSQL",
-      "Flutter"
-    ],
-    "Target hardware expectations": [
-      "Mobile devices",
-      "Web browsers"
-    ],
-    "Company profile": "Event management",
-    "Engineering profile": "Mobile and web developers"
-  },
-  {
-    "Product Idea": "AI-driven Quality Inspection for Manufacturing",
-    "Problem it solves": "Improves product quality and reduces defect rates",
-    "Software Techstack": [
-      "C++",
-      "Qt",
-      "SQLite",
-      "OpenCV"
-    ],
-    "Target hardware expectations": [
-      "Industrial cameras",
-      "Machine vision systems"
-    ],
-    "Company profile": "Industrial automation",
-    "Engineering profile": "Computer vision engineers"
-  },
-  {
-    "Product Idea": "Predictive Analytics for Cybersecurity Threat Detection",
-    "Problem it solves": "Improves cybersecurity threat detection and reduces risk",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Cloud infrastructure"
-    ],
-    "Company profile": "Cybersecurity solutions",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "AI-powered Personalized Nutrition Planning",
-    "Problem it solves": "Improves nutrition planning and reduces health risks",
+    "Product Idea": "AI-powered Marketing Automation",
+    "Problem it solves": "Streamlines marketing campaigns and improves customer engagement",
     "Software Techstack": [
       "Python",
       "Flask",
-      "PostgreSQL",
-      "Angular"
-    ],
-    "Target hardware expectations": [
-      "Mobile devices",
-      "Web browsers"
-    ],
-    "Company profile": "Health and wellness",
-    "Engineering profile": "Mobile and web developers"
-  },
-  {
-    "Product Idea": "Intelligent Traffic Management System for Smart Cities",
-    "Problem it solves": "Improves traffic flow and reduces congestion",
-    "Software Techstack": [
-      "Java",
-      "Spring Boot",
-      "MySQL",
-      "OpenCV"
-    ],
-    "Target hardware expectations": [
-      "Surveillance cameras",
-      "Edge devices"
-    ],
-    "Company profile": "Smart city infrastructure",
-    "Engineering profile": "Computer vision engineers"
-  },
-  {
-    "Product Idea": "AI-driven Predictive Modeling for Financial Forecasting",
-    "Problem it solves": "Improves financial forecasting and reduces risk",
-    "Software Techstack": [
-      "R",
-      "Shiny",
-      "PostgreSQL",
-      "Tableau"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
-    ],
-    "Company profile": "Financial services",
-    "Engineering profile": "Data engineers and analysts"
-  },
-  {
-    "Product Idea": "AI-powered Virtual Reality Training for Education",
-    "Problem it solves": "Improves learning experience and increases student engagement",
-    "Software Techstack": [
-      "C++",
-      "Unity",
       "PostgreSQL",
       "Vue.js"
     ],
     "Target hardware expectations": [
-      "VR headsets",
-      "Gaming consoles"
+      "Web browsers",
+      "Mobile devices"
     ],
-    "Company profile": "Education technology",
-    "Engineering profile": "Game developers and VR engineers"
+    "Company profile": "Marketing software",
+    "Engineering profile": "Web and mobile engineers"
   },
   {
-    "Product Idea": "Intelligent Energy Management System for Buildings",
-    "Problem it solves": "Improves energy efficiency and reduces energy costs",
+    "Product Idea": "Smart Traffic Management System",
+    "Problem it solves": "Reduces traffic congestion and improves road safety",
     "Software Techstack": [
-      "Python",
-      "Flask",
+      "C++",
+      "Linux",
+      "MySQL",
+      "Android"
+    ],
+    "Target hardware expectations": [
+      "Traffic cameras",
+      "IoT sensors"
+    ],
+    "Company profile": "Smart city infrastructure",
+    "Engineering profile": "Embedded systems engineers"
+  },
+  {
+    "Product Idea": "AI-driven Financial Planning and Analysis",
+    "Problem it solves": "Provides personalized financial recommendations",
+    "Software Techstack": [
+      "Java",
+      "Spring Boot",
       "PostgreSQL",
       "React"
     ],
     "Target hardware expectations": [
-      "IoT sensors",
-      "Building automation systems"
+      "Web browsers",
+      "Mobile devices"
     ],
-    "Company profile": "Real estate and property management",
-    "Engineering profile": "IoT and embedded systems engineers"
+    "Company profile": "Financial services software",
+    "Engineering profile": "Web and mobile engineers"
   },
   {
-    "Product Idea": "AI-driven Predictive Maintenance for Automotive",
-    "Problem it solves": "Improves vehicle reliability and reduces maintenance costs",
-    "Software Techstack": [
-      "Java",
-      "Spring Boot",
-      "MySQL",
-      "Tableau"
-    ],
-    "Target hardware expectations": [
-      "IoT sensors",
-      "Telematics systems"
-    ],
-    "Company profile": "Automotive manufacturing",
-    "Engineering profile": "IoT and embedded systems engineers"
-  },
-  {
-    "Product Idea": "Intelligent Supply Chain Optimization for Pharmaceuticals",
-    "Problem it solves": "Improves supply chain efficiency and reduces inventory costs",
-    "Software Techstack": [
-      "R",
-      "Shiny",
-      "PostgreSQL",
-      "Tableau"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
-    ],
-    "Company profile": "Pharmaceutical manufacturing",
-    "Engineering profile": "Data engineers and analysts"
-  },
-  {
-    "Product Idea": "AI-powered Medical Imaging Analysis for Diagnosis",
-    "Problem it solves": "Improves medical diagnosis accuracy and reduces diagnosis time",
+    "Product Idea": "Intelligent Cybersecurity Threat Detection",
+    "Problem it solves": "Detects and prevents cyber threats",
     "Software Techstack": [
       "Python",
       "Django",
@@ -473,47 +152,47 @@
       "Angular"
     ],
     "Target hardware expectations": [
-      "Medical imaging devices",
-      "Clinical decision support systems"
+      "Enterprise servers",
+      "Network devices"
     ],
-    "Company profile": "Healthcare technology",
-    "Engineering profile": "Healthcare IT engineers"
+    "Company profile": "Cybersecurity software",
+    "Engineering profile": "Security engineers"
   },
   {
-    "Product Idea": "Intelligent Warehouse Management System for E-commerce",
-    "Problem it solves": "Improves warehouse efficiency and reduces shipping costs",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React"
-    ],
-    "Target hardware expectations": [
-      "IoT sensors",
-      "Warehouse automation systems"
-    ],
-    "Company profile": "E-commerce platform",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "AI-driven Predictive Modeling for Insurance Risk Assessment",
-    "Problem it solves": "Improves insurance risk assessment and reduces claims costs",
+    "Product Idea": "AI-powered Customer Segmentation and Profiling",
+    "Problem it solves": "Helps businesses understand their customers better",
     "Software Techstack": [
       "R",
       "Shiny",
       "PostgreSQL",
-      "Tableau"
+      "Vue.js"
     ],
     "Target hardware expectations": [
-      "Servers",
-      "Data warehouses"
+      "Web browsers",
+      "Mobile devices"
     ],
-    "Company profile": "Insurance services",
-    "Engineering profile": "Data engineers and analysts"
+    "Company profile": "Marketing software",
+    "Engineering profile": "Data scientists and engineers"
   },
   {
-    "Product Idea": "Intelligent Customer Service Platform for Retail",
-    "Problem it solves": "Improves customer service experience and reduces support queries",
+    "Product Idea": "Smart Energy Management System",
+    "Problem it solves": "Optimizes energy consumption and reduces waste",
+    "Software Techstack": [
+      "C++",
+      "Arduino",
+      "WiFi",
+      "iOS"
+    ],
+    "Target hardware expectations": [
+      "Smart home devices",
+      "IoT sensors"
+    ],
+    "Company profile": "Energy and utilities",
+    "Engineering profile": "Embedded systems engineers"
+  },
+  {
+    "Product Idea": "AI-driven Predictive Maintenance for Vehicles",
+    "Problem it solves": "Reduces vehicle downtime and repair costs",
     "Software Techstack": [
       "Python",
       "Flask",
@@ -521,58 +200,282 @@
       "Angular"
     ],
     "Target hardware expectations": [
-      "Mobile devices",
-      "Web browsers"
+      "Vehicles",
+      "IoT sensors"
     ],
-    "Company profile": "Retail and e-commerce",
-    "Engineering profile": "Mobile and web developers"
+    "Company profile": "Automotive software",
+    "Engineering profile": "IoT and embedded systems engineers"
   },
   {
-    "Product Idea": "AI-powered Content Generation for Media and Entertainment",
-    "Problem it solves": "Improves content creation efficiency and reduces production costs",
-    "Software Techstack": [
-      "JavaScript",
-      "Node.js",
-      "MongoDB",
-      "React"
-    ],
-    "Target hardware expectations": [
-      "Servers",
-      "Cloud infrastructure"
-    ],
-    "Company profile": "Media and entertainment",
-    "Engineering profile": "Full-stack developers"
-  },
-  {
-    "Product Idea": "Intelligent Network Security System for Enterprises",
-    "Problem it solves": "Improves network security and reduces cybersecurity risks",
-    "Software Techstack": [
-      "C++",
-      "Qt",
-      "SQLite",
-      "OpenCV"
-    ],
-    "Target hardware expectations": [
-      "Network devices",
-      "Security appliances"
-    ],
-    "Company profile": "Enterprise software",
-    "Engineering profile": "Network security engineers"
-  },
-  {
-    "Product Idea": "AI-driven Predictive Maintenance for Industrial Equipment",
-    "Problem it solves": "Improves equipment reliability and reduces maintenance costs",
+    "Product Idea": "Intelligent Virtual Assistants for Healthcare",
+    "Problem it solves": "Improves patient engagement and outcomes",
     "Software Techstack": [
       "Java",
       "Spring Boot",
       "MySQL",
-      "Tableau"
+      "React Native"
     ],
     "Target hardware expectations": [
-      "IoT sensors",
-      "Industrial automation systems"
+      "Mobile devices",
+      "Wearables"
     ],
-    "Company profile": "Industrial automation",
+    "Company profile": "Healthcare software",
+    "Engineering profile": "Mobile and web engineers"
+  },
+  {
+    "Product Idea": "AI-powered Sales Forecasting and Analytics",
+    "Problem it solves": "Helps businesses predict and optimize sales",
+    "Software Techstack": [
+      "R",
+      "Shiny",
+      "PostgreSQL",
+      "Vue.js"
+    ],
+    "Target hardware expectations": [
+      "Web browsers",
+      "Mobile devices"
+    ],
+    "Company profile": "Sales software",
+    "Engineering profile": "Data scientists and engineers"
+  },
+  {
+    "Product Idea": "Smart Waste Management System",
+    "Problem it solves": "Optimizes waste collection and disposal",
+    "Software Techstack": [
+      "C++",
+      "Linux",
+      "MySQL",
+      "Android"
+    ],
+    "Target hardware expectations": [
+      "Waste management devices",
+      "IoT sensors"
+    ],
+    "Company profile": "Waste management software",
+    "Engineering profile": "Embedded systems engineers"
+  },
+  {
+    "Product Idea": "AI-driven Inventory Management and Optimization",
+    "Problem it solves": "Reduces inventory costs and improves supply chain efficiency",
+    "Software Techstack": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "Angular"
+    ],
+    "Target hardware expectations": [
+      "Enterprise servers",
+      "Logistics devices"
+    ],
+    "Company profile": "Inventory management software",
+    "Engineering profile": "Enterprise software engineers"
+  },
+  {
+    "Product Idea": "Intelligent Network Security Monitoring",
+    "Problem it solves": "Detects and prevents network threats",
+    "Software Techstack": [
+      "Java",
+      "Spring Boot",
+      "MySQL",
+      "React"
+    ],
+    "Target hardware expectations": [
+      "Network devices",
+      "Enterprise servers"
+    ],
+    "Company profile": "Cybersecurity software",
+    "Engineering profile": "Security engineers"
+  },
+  {
+    "Product Idea": "AI-powered Personalized Advertising",
+    "Problem it solves": "Improves ad relevance and customer engagement",
+    "Software Techstack": [
+      "Python",
+      "Flask",
+      "PostgreSQL",
+      "Vue.js"
+    ],
+    "Target hardware expectations": [
+      "Web browsers",
+      "Mobile devices"
+    ],
+    "Company profile": "Advertising software",
+    "Engineering profile": "Web and mobile engineers"
+  },
+  {
+    "Product Idea": "Smart Building Automation System",
+    "Problem it solves": "Optimizes building operations and energy efficiency",
+    "Software Techstack": [
+      "C++",
+      "Arduino",
+      "WiFi",
+      "iOS"
+    ],
+    "Target hardware expectations": [
+      "Building automation devices",
+      "IoT sensors"
+    ],
+    "Company profile": "Building automation software",
+    "Engineering profile": "Embedded systems engineers"
+  },
+  {
+    "Product Idea": "AI-driven Compliance and Risk Management",
+    "Problem it solves": "Helps businesses manage compliance and risk",
+    "Software Techstack": [
+      "Java",
+      "Spring Boot",
+      "MySQL",
+      "Angular"
+    ],
+    "Target hardware expectations": [
+      "Enterprise servers",
+      "Compliance devices"
+    ],
+    "Company profile": "Compliance software",
+    "Engineering profile": "Enterprise software engineers"
+  },
+  {
+    "Product Idea": "Intelligent IT Service Management",
+    "Problem it solves": "Streamlines IT service delivery and support",
+    "Software Techstack": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "React"
+    ],
+    "Target hardware expectations": [
+      "Web browsers",
+      "Mobile devices"
+    ],
+    "Company profile": "IT service management software",
+    "Engineering profile": "Web and mobile engineers"
+  },
+  {
+    "Product Idea": "AI-powered Quality Control for Food Processing",
+    "Problem it solves": "Reduces food waste and improves quality",
+    "Software Techstack": [
+      "C++",
+      "Linux",
+      "MySQL",
+      "Android"
+    ],
+    "Target hardware expectations": [
+      "Food processing devices",
+      "IoT sensors"
+    ],
+    "Company profile": "Food processing software",
+    "Engineering profile": "Embedded systems engineers"
+  },
+  {
+    "Product Idea": "Smart Grid Management System",
+    "Problem it solves": "Optimizes energy distribution and consumption",
+    "Software Techstack": [
+      "Java",
+      "Spring Boot",
+      "MySQL",
+      "Angular"
+    ],
+    "Target hardware expectations": [
+      "Smart grid devices",
+      "IoT sensors"
+    ],
+    "Company profile": "Energy and utilities",
     "Engineering profile": "IoT and embedded systems engineers"
+  },
+  {
+    "Product Idea": "AI-driven Predictive Analytics for Healthcare",
+    "Problem it solves": "Improves patient outcomes and reduces costs",
+    "Software Techstack": [
+      "R",
+      "Shiny",
+      "PostgreSQL",
+      "Vue.js"
+    ],
+    "Target hardware expectations": [
+      "Web browsers",
+      "Mobile devices"
+    ],
+    "Company profile": "Healthcare software",
+    "Engineering profile": "Data scientists and engineers"
+  },
+  {
+    "Product Idea": "Intelligent Customer Feedback and Sentiment Analysis",
+    "Problem it solves": "Helps businesses understand customer feedback",
+    "Software Techstack": [
+      "Python",
+      "Flask",
+      "PostgreSQL",
+      "React"
+    ],
+    "Target hardware expectations": [
+      "Web browsers",
+      "Mobile devices"
+    ],
+    "Company profile": "Customer experience software",
+    "Engineering profile": "Web and mobile engineers"
+  },
+  {
+    "Product Idea": "AI-powered Supply Chain Optimization",
+    "Problem it solves": "Reduces supply chain costs and improves efficiency",
+    "Software Techstack": [
+      "Java",
+      "Spring Boot",
+      "MySQL",
+      "Angular"
+    ],
+    "Target hardware expectations": [
+      "Enterprise servers",
+      "Logistics devices"
+    ],
+    "Company profile": "Logistics and supply chain management",
+    "Engineering profile": "Enterprise software engineers"
+  },
+  {
+    "Product Idea": "Smart Farming Automation System",
+    "Problem it solves": "Optimizes crop yields and reduces waste",
+    "Software Techstack": [
+      "C++",
+      "Arduino",
+      "WiFi",
+      "iOS"
+    ],
+    "Target hardware expectations": [
+      "Farming devices",
+      "IoT sensors"
+    ],
+    "Company profile": "Agricultural software",
+    "Engineering profile": "Embedded systems engineers"
+  },
+  {
+    "Product Idea": "AI-driven Financial Risk Management",
+    "Problem it solves": "Helps businesses manage financial risk",
+    "Software Techstack": [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "Vue.js"
+    ],
+    "Target hardware expectations": [
+      "Web browsers",
+      "Mobile devices"
+    ],
+    "Company profile": "Financial services software",
+    "Engineering profile": "Data scientists and engineers"
+  },
+  {
+    "Product Idea": "Intelligent Network Optimization",
+    "Problem it solves": "Improves network performance and reduces costs",
+    "Software Techstack": [
+      "Java",
+      "Spring Boot",
+      "MySQL",
+      "React"
+    ],
+    "Target hardware expectations": [
+      "Network devices",
+      "Enterprise servers"
+    ],
+    "Company profile": "Networking software",
+    "Engineering profile": "Network engineers"
   }
 ]

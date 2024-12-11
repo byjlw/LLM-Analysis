@@ -1,0 +1,196 @@
+```python
+# requirements.txt
+numpy
+pandas
+scikit-learn
+tensorflow
+flask
+psycopg2
+```
+
+```python
+# data_preprocessing.py
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+
+def load_data(db_connection):
+    query = "SELECT feedback, sentiment FROM customer_feedback"
+    data = pd.read_sql_query(query, db_connection)
+    return data
+
+def preprocess_data(data):
+    stop_words = set(stopwords.words('english'))
+    data['feedback'] = data['feedback'].apply(lambda x: ' '.join([word for word in word_tokenize(x) if word not in stop_words]))
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(data['feedback'])
+    y = data['sentiment']
+    return X, y
+
+def split_data(X, y):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    return X_train, X_test, y_train, y_test
+```
+
+```python
+# model_training.py
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+from data_preprocessing import load_data, preprocess_data, split_data
+import psycopg2
+
+def train_model(X_train, y_train):
+    model = MultinomialNB()
+    model.fit(X_train, y_train)
+    return model
+
+def evaluate_model(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    report = classification_report(y_test, y_pred)
+    return accuracy, report
+
+def main():
+    db_connection = psycopg2.connect(
+        dbname="customer_feedback",
+        user="postgres",
+        password="password",
+        host="localhost",
+        port="5432"
+    )
+    data = load_data(db_connection)
+    X, y = preprocess_data(data)
+    X_train, X_test, y_train, y_test = split_data(X, y)
+    model = train_model(X_train, y_train)
+    accuracy, report = evaluate_model(model, X_test, y_test)
+    print(f"Model Accuracy: {accuracy:.2f}")
+    print(report)
+
+if __name__ == "__main__":
+    main()
+```
+
+```python
+# model_deployment.py
+from flask import Flask, request, jsonify
+from data_preprocessing import preprocess_data
+from model_training import train_model
+import pickle
+import psycopg2
+
+app = Flask(__name__)
+
+def load_model():
+    with open('model.pkl', 'rb') as f:
+        model = pickle.load(f)
+    return model
+
+def load_vectorizer():
+    with open('vectorizer.pkl', 'rb') as f:
+        vectorizer = pickle.load(f)
+    return vectorizer
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    feedback = request.json['feedback']
+    db_connection = psycopg2.connect(
+        dbname="customer_feedback",
+        user="postgres",
+        password="password",
+        host="localhost",
+        port="5432"
+    )
+    data = pd.DataFrame({'feedback': [feedback]})
+    data['feedback'] = data['feedback'].apply(lambda x: ' '.join([word for word in word_tokenize(x) if word not in stopwords.words('english')]))
+    vectorizer = load_vectorizer()
+    X = vectorizer.transform(data['feedback'])
+    model = load_model()
+    prediction = model.predict(X)
+    return jsonify({'sentiment': prediction[0]})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+```python
+# tests.py
+import unittest
+from data_preprocessing import load_data, preprocess_data, split_data
+from model_training import train_model, evaluate_model
+from model_deployment import load_model, load_vectorizer
+import psycopg2
+import pandas as pd
+
+class TestSentimentAnalysis(unittest.TestCase):
+    def test_data_loading(self):
+        db_connection = psycopg2.connect(
+            dbname="customer_feedback",
+            user="postgres",
+            password="password",
+            host="localhost",
+            port="5432"
+        )
+        data = load_data(db_connection)
+        self.assertIsNotNone(data)
+
+    def test_data_preprocessing(self):
+        db_connection = psycopg2.connect(
+            dbname="customer_feedback",
+            user="postgres",
+            password="password",
+            host="localhost",
+            port="5432"
+        )
+        data = load_data(db_connection)
+        X, y = preprocess_data(data)
+        self.assertIsNotNone(X)
+        self.assertIsNotNone(y)
+
+    def test_model_training(self):
+        db_connection = psycopg2.connect(
+            dbname="customer_feedback",
+            user="postgres",
+            password="password",
+            host="localhost",
+            port="5432"
+        )
+        data = load_data(db_connection)
+        X, y = preprocess_data(data)
+        X_train, X_test, y_train, y_test = split_data(X, y)
+        model = train_model(X_train, y_train)
+        self.assertIsNotNone(model)
+
+    def test_model_evaluation(self):
+        db_connection = psycopg2.connect(
+            dbname="customer_feedback",
+            user="postgres",
+            password="password",
+            host="localhost",
+            port="5432"
+        )
+        data = load_data(db_connection)
+        X, y = preprocess_data(data)
+        X_train, X_test, y_train, y_test = split_data(X, y)
+        model = train_model(X_train, y_train)
+        accuracy, report = evaluate_model(model, X_test, y_test)
+        self.assertGreater(accuracy, 0.5)
+
+    def test_model_deployment(self):
+        model = load_model()
+        vectorizer = load_vectorizer()
+        feedback = "I love this product!"
+        data = pd.DataFrame({'feedback': [feedback]})
+        data['feedback'] = data['feedback'].apply(lambda x: ' '.join([word for word in word_tokenize(x) if word not in stopwords.words('english')]))
+        X = vectorizer.transform(data['feedback'])
+        prediction = model.predict(X)
+        self.assertEqual(prediction[0], 1)
+
+if __name__ == "__main__":
+    unittest.main()
+```

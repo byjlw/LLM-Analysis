@@ -1,0 +1,272 @@
+```java
+// NLPModel.java
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+public class NLPModel {
+    private MultiLayerNetwork model;
+
+    public NLPModel(int inputSize, int outputSize) {
+        NeuralNetConfiguration.Builder builder = new NeuralNetConfiguration.Builder();
+        builder.seed(42)
+               .weightInit(WeightInit.XAVIER)
+               .updater(new Nesterovs(0.1))
+               .list()
+               .layer(0, new DenseLayer.Builder()
+                       .nIn(inputSize)
+                       .nOut(128)
+                       .activation(Activation.RELU)
+                       .build())
+               .layer(1, new OutputLayer.Builder()
+                       .nIn(128)
+                       .nOut(outputSize)
+                       .activation(Activation.SOFTMAX)
+                       .lossFunction(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                       .build())
+               .pretrain(false).backprop(true);
+
+        model = new MultiLayerNetwork(builder.build());
+        model.init();
+    }
+
+    public INDArray predict(INDArray input) {
+        return model.output(input);
+    }
+
+    public void train(INDArray input, INDArray output) {
+        model.fit(input, output);
+    }
+}
+```
+
+```java
+// PredictiveAnalyticsModel.java
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+public class PredictiveAnalyticsModel {
+    private MultiLayerNetwork model;
+
+    public PredictiveAnalyticsModel(int inputSize, int outputSize) {
+        NeuralNetConfiguration.Builder builder = new NeuralNetConfiguration.Builder();
+        builder.seed(42)
+               .weightInit(WeightInit.XAVIER)
+               .updater(new Nesterovs(0.1))
+               .list()
+               .layer(0, new DenseLayer.Builder()
+                       .nIn(inputSize)
+                       .nOut(128)
+                       .activation(Activation.RELU)
+                       .build())
+               .layer(1, new OutputLayer.Builder()
+                       .nIn(128)
+                       .nOut(outputSize)
+                       .activation(Activation.IDENTITY)
+                       .lossFunction(LossFunctions.LossFunction.MSE)
+                       .build())
+               .pretrain(false).backprop(true);
+
+        model = new MultiLayerNetwork(builder.build());
+        model.init();
+    }
+
+    public INDArray predict(INDArray input) {
+        return model.output(input);
+    }
+
+    public void train(INDArray input, INDArray output) {
+        model.fit(input, output);
+    }
+}
+```
+
+```java
+// DataPreprocessor.java
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.NDArrayIndex;
+
+public class DataPreprocessor {
+    public INDArray preprocess(INDArray data) {
+        // Normalize data
+        data = data.div(data.maxNumber());
+
+        // Remove missing values
+        data = data.replaceAll(Double.NaN, 0);
+
+        return data;
+    }
+}
+```
+
+```java
+// Main.java
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
+public class Main {
+    public static void main(String[] args) {
+        // Create data
+        INDArray inputData = Nd4j.rand(100, 10);
+        INDArray outputData = Nd4j.rand(100, 5);
+
+        // Preprocess data
+        DataPreprocessor preprocessor = new DataPreprocessor();
+        INDArray preprocessedInput = preprocessor.preprocess(inputData);
+        INDArray preprocessedOutput = preprocessor.preprocess(outputData);
+
+        // Train NLP model
+        NLPModel nlpModel = new NLPModel(10, 5);
+        nlpModel.train(preprocessedInput, preprocessedOutput);
+
+        // Train predictive analytics model
+        PredictiveAnalyticsModel predictiveModel = new PredictiveAnalyticsModel(10, 5);
+        predictiveModel.train(preprocessedInput, preprocessedOutput);
+
+        // Make predictions
+        INDArray nlpPrediction = nlpModel.predict(preprocessedInput);
+        INDArray predictivePrediction = predictiveModel.predict(preprocessedInput);
+
+        System.out.println("NLP Prediction: " + nlpPrediction);
+        System.out.println("Predictive Analytics Prediction: " + predictivePrediction);
+    }
+}
+```
+
+```javascript
+// App.js (React Native)
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button } from 'react-native';
+
+const App = () => {
+    const [input, setInput] = useState('');
+    const [output, setOutput] = useState('');
+
+    const handlePress = () => {
+        // Send input to Java backend
+        fetch('http://localhost:8080/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ input: input })
+        })
+       .then(response => response.json())
+       .then(data => {
+            setOutput(data.output);
+        });
+    };
+
+    return (
+        <View>
+            <Text>Input:</Text>
+            <Text>{input}</Text>
+            <Button title="Predict" onPress={handlePress} />
+            <Text>Output:</Text>
+            <Text>{output}</Text>
+        </View>
+    );
+};
+
+export default App;
+```
+
+```java
+// JavaBackend.java
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+@Path("/predict")
+public class JavaBackend {
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response predict(String input) {
+        // Create NLP model
+        NLPModel nlpModel = new NLPModel(10, 5);
+
+        // Preprocess input
+        DataPreprocessor preprocessor = new DataPreprocessor();
+        INDArray preprocessedInput = preprocessor.preprocess(Nd4j.rand(1, 10));
+
+        // Make prediction
+        INDArray prediction = nlpModel.predict(preprocessedInput);
+
+        // Return prediction
+        return Response.ok(prediction.toString()).build();
+    }
+}
+```
+
+```java
+// NLPModelTest.java
+import org.junit.Test;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
+import static org.junit.Assert.assertEquals;
+
+public class NLPModelTest {
+    @Test
+    public void testPredict() {
+        // Create NLP model
+        NLPModel nlpModel = new NLPModel(10, 5);
+
+        // Preprocess input
+        DataPreprocessor preprocessor = new DataPreprocessor();
+        INDArray preprocessedInput = preprocessor.preprocess(Nd4j.rand(1, 10));
+
+        // Make prediction
+        INDArray prediction = nlpModel.predict(preprocessedInput);
+
+        // Check prediction
+        assertEquals(5, prediction.columns());
+    }
+}
+```
+
+```java
+// PredictiveAnalyticsModelTest.java
+import org.junit.Test;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
+import static org.junit.Assert.assertEquals;
+
+public class PredictiveAnalyticsModelTest {
+    @Test
+    public void testPredict() {
+        // Create predictive analytics model
+        PredictiveAnalyticsModel predictiveModel = new PredictiveAnalyticsModel(10, 5);
+
+        // Preprocess input
+        DataPreprocessor preprocessor = new DataPreprocessor();
+        INDArray preprocessedInput = preprocessor.preprocess(Nd4j.rand(1, 10));
+
+        // Make prediction
+        INDArray prediction = predictiveModel.predict(preprocessedInput);
+
+        // Check prediction
+        assertEquals(5, prediction.columns());
+    }
+}
+```

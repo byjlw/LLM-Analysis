@@ -124,7 +124,7 @@ class IdeaGenerator:
         
         try:
             # Generate ideas using process_prompts.py
-            logger.info(f"Requesting {num_ideas} ideas from OpenRouter API...")
+            logger.debug(f"Requesting {num_ideas} ideas from OpenRouter API...")
             ideas = generate_ideas(self.openrouter_client, prompt)
             
             # Log the raw ideas for debugging

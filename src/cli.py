@@ -148,6 +148,13 @@ def parse_args():
         help='Step to start from (1/ideas, 2/requirements, 3/code, 4/dependencies)',
         default='1'
     )
+
+    coding_deps.add_argument(
+        '--parallel-requests',
+        type=int,
+        help='Number of parallel LLM requests (default: 5)',
+        default=None
+    )
     
     args = parser.parse_args()
     if not args.command:
@@ -195,6 +202,8 @@ def main():
     config['openrouter']['api_key'] = args.api_key
     if args.model:
         config['openrouter']['default_model'] = args.model
+    if args.parallel_requests is not None:
+        config['parallel_requests'] = args.parallel_requests
     
     # Check API key
     if not config['openrouter']['api_key']:
@@ -242,7 +251,8 @@ def main():
             logger.info("Generating requirements...")
             requirement_analyzer = RequirementAnalyzer(openrouter_client, file_handler)
             requirements = requirement_analyzer.analyze_all(
-                prompt_file=config["prompts"]["requirements"]
+                prompt_file=config["prompts"]["requirements"],
+                parallel_requests=config.get('parallel_requests', 5)
             )
             if not requirements:
                 logger.error("Failed to generate requirements")
@@ -254,7 +264,8 @@ def main():
             logger.info("Generating code...")
             code_generator = CodeGenerator(file_handler, openrouter_client)
             if not code_generator.generate(
-                prompt_file=config["prompts"]["code"]
+                prompt_file=config["prompts"]["code"],
+                parallel_requests=config.get('parallel_requests', 5)
             ):
                 logger.error("Failed to generate code")
                 sys.exit(1)

@@ -120,11 +120,11 @@ def handle_json_response(client, messages: List[Dict[str, str]], model: str, max
         try:
             response = client._make_request(messages, model, max_tokens)
             content = response["choices"][0]["message"]["content"]
-            logger.info(f"Raw content from API:\n{content}")
+            logger.debug(f"Raw content from API:\n{content}")
             
             # Clean and extract JSON content
             json_content = clean_json_string(content)
-            logger.info(f"Cleaned JSON content:\n{json_content}")
+            logger.debug(f"Cleaned JSON content:\n{json_content}")
             
             # Parse and return the JSON content
             return json.loads(json_content)
@@ -152,7 +152,7 @@ def handle_json_response(client, messages: List[Dict[str, str]], model: str, max
                     "role": "user",
                     "content": error_message
                 })
-                logger.info("Added format correction prompt to conversation...")
+                logger.debug("Added format correction prompt to conversation")
             except IOError as e:
                 logger.error(f"Failed to read error prompt file: {str(e)}")
                 raise RuntimeError(f"Failed to read error prompt file: {str(e)}")

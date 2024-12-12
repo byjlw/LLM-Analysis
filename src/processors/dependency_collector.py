@@ -97,8 +97,8 @@ class DependencyCollector:
             logger.error(f"Error walking directory {directory}: {str(e)}")
         
         logger.info("Analysis complete:")
-        logger.info(f"  Total frameworks found: {len(framework_counter)}")
-        logger.debug(f"  Framework counts: {dict(framework_counter)}")
+        logger.info(f"Total frameworks found: {len(framework_counter)}")
+        logger.debug(f"Framework counts: {dict(framework_counter)}")
         
         return {
             "frameworks": framework_counter
@@ -197,7 +197,6 @@ class DependencyCollector:
         # Create code directory if it doesn't exist
         try:
             if not os.path.exists(code_dir):
-                logger.info(f"Creating code directory: {code_dir}")
                 os.makedirs(code_dir)
         except Exception as e:
             logger.error(f"Error creating code directory {code_dir}: {str(e)}")

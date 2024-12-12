@@ -83,14 +83,12 @@ def load_config(config_path=None):
             
     # Try config.json in current directory first
     if os.path.exists('config.json'):
-        logger.info("Loading config from config.json")
         with open('config.json', 'r', encoding='utf-8') as f:
             return json.load(f)
             
     # Fall back to default_config.json
     default_config = os.path.join(os.path.dirname(__file__), 'config', 'default_config.json')
     if os.path.exists(default_config):
-        logger.info("Loading default config")
         with open(default_config, 'r', encoding='utf-8') as f:
             return json.load(f)
             

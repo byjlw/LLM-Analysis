@@ -67,17 +67,16 @@ class OpenRouterClient:
             "max_tokens": max_tokens
         }
         
-        logger.info(f"Making request to OpenRouter API with model: {model or self.default_model}")
         logger.debug(f"Request data: {json.dumps(data, indent=2)}")
         
         last_error = None
         for attempt in range(self.max_retries):
             try:
-                logger.info(f"Attempt {attempt + 1}/{self.max_retries}")
+                logger.debug(f"Attempt {attempt + 1}/{self.max_retries}")
                 
                 # Use increasing timeout for retries
                 current_timeout = self.timeout * (attempt + 1)
-                logger.info(f"Using timeout of {current_timeout} seconds")
+                logger.debug(f"Using timeout of {current_timeout} seconds")
                 
                 response = requests.post(
                     f"{self.base_url}/chat/completions",
@@ -91,7 +90,6 @@ class OpenRouterClient:
                     
                 response.raise_for_status()
                 response_data = response.json()
-                logger.info("Request successful")
                 logger.debug(f"API Response:\n{json.dumps(response_data, indent=2)}")
                 return response_data
                 
@@ -241,11 +239,11 @@ class OpenRouterClient:
             try:
                 response = self._make_request(messages, model, max_tokens)
                 content = response["choices"][0]["message"]["content"]
-                logger.info(f"Raw content from API:\n{content}")
+                logger.debug(f"Raw content from API:\n{content}")
                 
                 # Clean and extract JSON content
                 json_content = self._clean_json_string(content)
-                logger.info(f"Cleaned JSON content:\n{json_content}")
+                logger.debug(f"Cleaned JSON content:\n{json_content}")
                 
                 # Parse the JSON content
                 data = json.loads(json_content)
@@ -253,8 +251,6 @@ class OpenRouterClient:
                 
                 # Validate and ensure correct structure
                 validated_data = self._validate_json_structure(data)
-                logger.info(f"Successfully processed {len(validated_data)} ideas")
-                
                 return validated_data
                 
             except (json.JSONDecodeError, ValueError) as e:
@@ -280,7 +276,7 @@ class OpenRouterClient:
                         "role": "user",
                         "content": error_message
                     })
-                    logger.info("Added format correction prompt to conversation...")
+                    logger.debug("Added format correction prompt to conversation")
                 except IOError as e:
                     logger.error(f"Failed to read error prompt file: {str(e)}")
                     raise RuntimeError(f"Failed to read error prompt file: {str(e)}")
@@ -392,7 +388,7 @@ class OpenRouterClient:
         try:
             response = self._make_request(messages, model, max_tokens)
             content = response["choices"][0]["message"]["content"]
-            logger.info(f"LLM Response:\n{content}")
+            logger.debug(f"LLM Response:\n{content}")
             
             # Clean and extract JSON content
             json_content = self._clean_json_string(content)

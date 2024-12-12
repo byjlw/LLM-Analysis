@@ -90,7 +90,6 @@ class RequirementAnalyzer:
             os.makedirs(output_dir, exist_ok=True)
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(requirements)
-            logger.info(f"Saved requirements to: {filepath}")
                 
         return requirements
 
@@ -145,7 +144,6 @@ class RequirementAnalyzer:
         # Create requirements directory in the current output directory
         requirements_dir = os.path.join(self.file_handler.current_output_dir, "requirements")
         os.makedirs(requirements_dir, exist_ok=True)
-        logger.info(f"Created requirements directory: {requirements_dir}")
         
         # Prepare arguments for parallel processing
         process_args = [(idea, prompt_file, requirements_dir) for idea in ideas]
@@ -162,7 +160,6 @@ class RequirementAnalyzer:
                     req = future.result()
                     if req:  # Only add non-empty results
                         requirements.append(req)
-                        logger.info(f"Successfully processed idea: {idea['Product Idea']}")
                     else:
                         logger.error(f"Failed to process idea: {idea['Product Idea']}")
                 except Exception as e:

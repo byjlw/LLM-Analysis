@@ -20,5 +20,6 @@
     "logging": {
         "level": "DEBUG",
         "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    }
+    },
+    "parallel_requests": 5
 }

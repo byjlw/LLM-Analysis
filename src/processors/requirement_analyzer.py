@@ -5,6 +5,7 @@ Processor for analyzing product ideas and generating requirements.
 import os
 import logging
 from typing import Dict, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..utils.openrouter import OpenRouterClient
 from ..utils.file_handler import FileHandler
@@ -92,14 +93,32 @@ class RequirementAnalyzer:
             logger.info(f"Saved requirements to: {filepath}")
                 
         return requirements
+
+    def _process_idea_parallel(self, args: tuple) -> str:
+        """
+        Process a single idea in parallel.
         
-    def analyze_all(self, ideas_file: str = "ideas.json", prompt_file: str = None) -> List[str]:
+        Args:
+            args: Tuple containing (idea, prompt_file, output_dir)
+            
+        Returns:
+            Generated requirements string
+        """
+        idea, prompt_file, output_dir = args
+        try:
+            return self.analyze_idea(idea, prompt_file, output_dir)
+        except Exception as e:
+            logger.error(f"Error processing idea {idea['Product Idea']}: {str(e)}")
+            return ""
+        
+    def analyze_all(self, ideas_file: str = "ideas.json", prompt_file: str = None, parallel_requests: int = 5) -> List[str]:
         """
         Generate requirements for all ideas in the ideas file.
         
         Args:
             ideas_file: Path to the JSON file containing ideas
             prompt_file: Path to the prompt template file
+            parallel_requests: Number of parallel requests to make (default: 5)
             
         Returns:
             List of generated requirements strings
@@ -128,13 +147,30 @@ class RequirementAnalyzer:
         os.makedirs(requirements_dir, exist_ok=True)
         logger.info(f"Created requirements directory: {requirements_dir}")
         
-        # Generate requirements for each idea
+        # Prepare arguments for parallel processing
+        process_args = [(idea, prompt_file, requirements_dir) for idea in ideas]
+        
+        # Process ideas in parallel
         requirements = []
-        for i, idea in enumerate(ideas):
-            logger.info(f"Generating requirements for idea {i + 1}: {idea['Product Idea']}")
-            req = self.analyze_idea(idea, prompt_file, requirements_dir)
-            requirements.append(req)
-            logger.debug(f"Generated requirements for idea {i + 1}")
+        with ThreadPoolExecutor(max_workers=parallel_requests) as executor:
+            future_to_idea = {executor.submit(self._process_idea_parallel, args): args[0] 
+                            for args in process_args}
+            
+            for future in as_completed(future_to_idea):
+                idea = future_to_idea[future]
+                try:
+                    req = future.result()
+                    if req:  # Only add non-empty results
+                        requirements.append(req)
+                        logger.info(f"Successfully processed idea: {idea['Product Idea']}")
+                    else:
+                        logger.error(f"Failed to process idea: {idea['Product Idea']}")
+                except Exception as e:
+                    logger.error(f"Error processing idea {idea['Product Idea']}: {str(e)}")
+            
+        if not requirements:
+            logger.error("No requirements were successfully generated")
+            return []
             
         logger.info(f"Generated requirements for {len(requirements)} ideas")
         return requirements

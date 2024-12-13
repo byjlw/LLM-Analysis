@@ -62,12 +62,8 @@ def validate_json_structure(data: Any) -> list:
     items = [data] if isinstance(data, dict) else data
     
     required_fields = {
-        "Product Idea": str,
-        "Problem it solves": str,
-        "Software Techstack": list,
-        "Target hardware expectations": list,
-        "Company profile": str,
-        "Engineering profile": str
+        "Idea": str,
+        "Details": str
     }
     
     validated_items = []
@@ -87,9 +83,6 @@ def validate_json_structure(data: Any) -> list:
             if not isinstance(item[field], expected_type):
                 logger.error(f"Item {i} field '{field}' value:\n{json.dumps(item[field], indent=2)}")
                 raise ValueError(f"Item {i} field '{field}' has wrong type: expected {expected_type}, got {type(item[field])}")
-            if expected_type == list and not all(isinstance(x, str) for x in item[field]):
-                logger.error(f"Item {i} field '{field}' values:\n{json.dumps(item[field], indent=2)}")
-                raise ValueError(f"Item {i} field '{field}' contains non-string values")
                 
         validated_items.append(item)
         
@@ -157,13 +150,39 @@ def handle_json_response(client, messages: List[Dict[str, str]], model: str, max
                 logger.error(f"Failed to read error prompt file: {str(e)}")
                 raise RuntimeError(f"Failed to read error prompt file: {str(e)}")
 
-def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000, more_items_prompt: str = None) -> List:
+def get_text_response(client, messages: List[Dict[str, str]], model: str = None, max_tokens: int = 10000) -> str:
+    """
+    Get a text response from the LLM.
+    
+    Args:
+        client: OpenRouterClient instance
+        messages: List of message dictionaries
+        model: Optional model override
+        max_tokens: Maximum tokens to generate
+        
+    Returns:
+        Text response from LLM
+        
+    Raises:
+        RuntimeError: If API request fails
+    """
+    response = client._make_request(messages, model, max_tokens)
+    try:
+        return response["choices"][0]["message"]["content"]
+    except KeyError as e:
+        error_msg = f"Invalid response structure: missing key {str(e)}\nFull response:\n{json.dumps(response, indent=2)}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+def generate_ideas(client, initial_prompt: str, second_prompt: str, format_prompt: str, num_ideas: int = 15, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000, more_items_prompt: str = None) -> List:
     """
     Generate and validate product ideas.
     
     Args:
         client: OpenRouterClient instance
-        prompt: The prompt for generating ideas
+        initial_prompt: The initial prompt for generating ideas
+        second_prompt: The prompt for getting more specific ideas
+        format_prompt: The prompt for setting format and batch size
         num_ideas: Number of ideas to generate (default: 15)
         model: Optional model override
         max_format_retries: Maximum retries for format correction
@@ -186,51 +205,93 @@ def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, 
     if more_items_prompt is None:
         raise ValueError("more_items_prompt must be provided")
     
-    # Generate initial batch of ideas
-    initial_count = min(25, remaining_ideas)
-    current_prompt = prompt.replace("{NUM_IDEAS}", str(initial_count))
-    logger.debug(f"Using prompt for initial {initial_count} ideas:\n{current_prompt}")
+    # Step 1: Get initial broad ideas (text response)
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful Assistant."
+        },
+        {
+            "role": "user",
+            "content": initial_prompt
+        }
+    ]
+    
+    # Get initial text response
+    initial_response = get_text_response(client, messages, model, max_tokens)
+    logger.debug(f"Initial response:\n{initial_response}")
+    
+    # Step 2: Get more specific ideas (text response)
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful Assistant."
+        },
+        {
+            "role": "assistant",
+            "content": initial_response
+        },
+        {
+            "role": "user",
+            "content": second_prompt
+        }
+    ]
+    
+    # Get more specific text response
+    specific_response = get_text_response(client, messages, model, max_tokens)
+    logger.debug(f"Specific response:\n{specific_response}")
+    
+    # Step 3: Get formatted ideas with initial batch size
+    batch_size = min(25, remaining_ideas)
+    current_format_prompt = format_prompt.replace("{NUM_IDEAS}", str(batch_size))
     
     messages = [
         {
             "role": "system",
-            "content": "You are a Product Manager that provides responses in valid JSON format."
+            "content": "You are a helpful assistant that provides responses in valid JSON format."
+        },
+        {
+            "role": "assistant",
+            "content": specific_response
         },
         {
             "role": "user",
-            "content": current_prompt
+            "content": current_format_prompt
         }
     ]
     
-    # Get initial batch of ideas
-    initial_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
-    validated_ideas = validate_json_structure(initial_ideas)
-    all_ideas.extend(validated_ideas)
-    remaining_ideas -= len(validated_ideas)
+    # Get formatted ideas (now we start JSON validation)
+    formatted_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
+    validated_formatted = validate_json_structure(formatted_ideas)
+    all_ideas.extend(validated_formatted)
+    remaining_ideas -= len(validated_formatted)
     
-    # If we need more ideas, keep requesting them in batches
+    # Step 4: If we need more ideas, keep requesting them in batches
     while remaining_ideas > 0:
         batch_size = min(25, remaining_ideas)
         logger.debug(f"Requesting {batch_size} more ideas...")
         
-        # Add the previous response to conversation history
-        messages.append({
-            "role": "assistant",
-            "content": json.dumps(validated_ideas)
-        })
-        
-        # Add request for more items
-        more_prompt = more_items_prompt.replace("{NUM}", str(batch_size))
-        messages.append({
-            "role": "user",
-            "content": more_prompt
-        })
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that responds in valid JSON format."
+            },
+            {
+                "role": "assistant",
+                "content": json.dumps(validated_formatted)
+            },
+            {
+                "role": "user",
+                "content": more_items_prompt.replace("{NUM}", str(batch_size))
+            }
+        ]
         
         # Get next batch of ideas
         batch_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
         validated_batch = validate_json_structure(batch_ideas)
         all_ideas.extend(validated_batch)
         remaining_ideas -= len(validated_batch)
+        validated_formatted = validated_batch
     
     logger.info(f"Successfully generated {len(all_ideas)} ideas")
     return all_ideas

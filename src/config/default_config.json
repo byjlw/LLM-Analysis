@@ -12,6 +12,8 @@
     },
     "prompts": {
         "ideas": "prompts/find-deps/1-spawn_ideas.txt",
+        "ideas_expand": "prompts/find-deps/1-spawn_ideas-b.txt",
+        "ideas_list": "prompts/find-deps/1-spawn_ideas-c.txt",
         "requirements": "prompts/find-deps/2-idea-to-requirements.txt",
         "code": "prompts/find-deps/3-write-code.txt",
         "dependencies": "prompts/find-deps/4-collect-dependencies.txt",

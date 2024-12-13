@@ -236,7 +236,10 @@ def main():
             logger.info("Generating ideas...")
             idea_generator = IdeaGenerator(file_handler, openrouter_client)
             ideas_file = idea_generator.generate(
-                prompt_file=config["prompts"]["ideas"],
+                initial_prompt_file=config["prompts"]["ideas"],
+                expand_prompt_file=config["prompts"]["ideas_expand"],
+                list_prompt_file=config["prompts"]["ideas_list"],
+                more_items_prompt_file=config["prompts"]["more_items"],
                 output_file=config["output"]["ideas_filename"],
                 num_ideas=args.num_ideas
             )

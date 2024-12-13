@@ -157,7 +157,7 @@ def handle_json_response(client, messages: List[Dict[str, str]], model: str, max
                 logger.error(f"Failed to read error prompt file: {str(e)}")
                 raise RuntimeError(f"Failed to read error prompt file: {str(e)}")
 
-def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000) -> List:
+def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000, more_items_prompt: str = None) -> List:
     """
     Generate and validate product ideas.
     
@@ -168,6 +168,7 @@ def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, 
         model: Optional model override
         max_format_retries: Maximum retries for format correction
         max_tokens: Maximum number of tokens to generate
+        more_items_prompt: The prompt template for requesting more items
         
     Returns:
         List of validated ideas
@@ -182,14 +183,8 @@ def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, 
     all_ideas = []
     remaining_ideas = num_ideas
     
-    # Read the more items prompt template
-    more_items_path = os.path.join("prompts", "m1-num_more_items.txt")
-    try:
-        with open(more_items_path, "r") as f:
-            more_items_prompt = f.read().strip()
-    except IOError as e:
-        logger.error(f"Failed to read more items prompt file: {str(e)}")
-        raise RuntimeError(f"Failed to read more items prompt file: {str(e)}")
+    if more_items_prompt is None:
+        raise ValueError("more_items_prompt must be provided")
     
     # Generate initial batch of ideas
     initial_count = min(25, remaining_ideas)

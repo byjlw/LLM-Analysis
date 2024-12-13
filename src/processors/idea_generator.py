@@ -118,11 +118,27 @@ class IdeaGenerator:
             prompt = f.read()
             
         logger.debug(f"Using prompt:\n{prompt}")
+
+        # Read the more items prompt from config
+        more_items_path = self.file_handler.config.get("prompts", {}).get("more_items")
+        if not more_items_path or not os.path.exists(more_items_path):
+            logger.error(f"More items prompt file not found: {more_items_path}")
+            raise FileNotFoundError(f"More items prompt file not found: {more_items_path}")
+
+        with open(more_items_path, 'r', encoding='utf-8') as f:
+            more_items_prompt = f.read()
+            
+        logger.debug(f"Using more items prompt:\n{more_items_prompt}")
         
         try:
             # Generate ideas using process_prompts.py
             logger.debug(f"Requesting {num_ideas} ideas from OpenRouter API...")
-            ideas = generate_ideas(self.openrouter_client, prompt, num_ideas=num_ideas)
+            ideas = generate_ideas(
+                self.openrouter_client, 
+                prompt, 
+                num_ideas=num_ideas,
+                more_items_prompt=more_items_prompt
+            )
             
             # Log the raw ideas for debugging
             logger.debug(f"Received ideas from API:\n{json.dumps(ideas, indent=2)}")

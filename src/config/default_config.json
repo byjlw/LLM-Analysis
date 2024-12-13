@@ -11,15 +11,15 @@
         "dependencies_filename": "dependencies.json"
     },
     "prompts": {
-        "ideas": "prompts/1-spawn_ideas.txt",
-        "requirements": "prompts/2-idea-to-requirements.txt",
-        "code": "prompts/3-write-code.txt",
-        "dependencies": "prompts/4-collect-dependencies.txt",
-        "error_format": "prompts/e1-wrong_format.txt"
+        "ideas": "prompts/find-deps/1-spawn_ideas.txt",
+        "requirements": "prompts/find-deps/2-idea-to-requirements.txt",
+        "code": "prompts/find-deps/3-write-code.txt",
+        "dependencies": "prompts/find-deps/4-collect-dependencies.txt",
+        "error_format": "prompts/e1-wrong_format.txt",
+        "more_items": "prompts/m1-num_more_items.txt"
     },
     "logging": {
         "level": "DEBUG",
         "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    },
-    "parallel_requests": 5
+    }
 }

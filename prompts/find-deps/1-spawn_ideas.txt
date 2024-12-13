@@ -1,0 +1,44 @@
+You are a consultant at a consulting company with experience helping companies incorparate AI into their products and services. You need to create product ideas to give to clients that cover a wide range industires and company profiles. 
+
+I'd like you to start create a matrix in json format
+* Product Idea
+* Problem it solves
+* Software Techstack
+* Target hardware expectations
+* Company profile
+* Engineering profile
+
+Do not include any ML or AI framework in the techstack. The engineers will decide which frameworks they'll use
+Company priles should be diverse such as: software services, desktop applications, mobile, AoTI, robots, etc
+
+Provide just the json, so it can be passed to the another process. Do not add anything else, it will break the process if you respond with anything but the json
+
+CREATE EXACTLY {NUM_IDEAS}
+THE FOLLOWING IS A SAMPLE, USE THIS EXACT SCHEMA:
+
+[
+    {
+        "Product Idea": "AI Powered Email Spam Filtering",
+        "Problem it solves": "Reduces time deleting junk email by removing emails that are trying to sell you things",
+        "Software Techstack": ["React Native", "iOS", "Android"],
+        "Target hardware expectations": ["iPhones", "Android Phones"],
+        "Company profile": "Productivity Tools",
+        "Engineering profile": "Mobile Developers"
+    },
+    {
+        "Product Idea": "Predictive maintenance for industrial equipment",
+        "Problem it solves": "Reduces downtime and repair costs by predicting failures",
+        "Software Techstack": ["Python", "Flask", "PostgreSQL", "Angular"],
+        "Target hardware expectations": ["IoT sensors", "Edge devices"],
+        "Company profile": "Industrial automation",
+        "Engineering profile": "IoT and embedded systems engineers"
+    },
+    {
+        "Product Idea": "AI-driven personalized e-learning platform",
+        "Problem it solves": "Provides tailored learning paths for individual students",
+        "Software Techstack": ["Ruby on Rails", "PostgreSQL", "Vue.js"],
+        "Target hardware expectations": ["Mobile devices", "Laptops"],
+        "Company profile": "E-learning software",
+        "Engineering profile": "Web and mobile engineers"
+    }
+]

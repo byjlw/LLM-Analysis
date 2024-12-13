@@ -41,6 +41,7 @@ The CLI provides the `coding-dependencies` command with options:
 - Ensures techstack and hardware expectations are proper lists
 - Supports batch generation with automatic retry for format errors
 - Uses conversation history to maintain context between batches
+- Uses configurable prompts for both initial generation and requesting more items
 
 #### RequirementAnalyzer (`src/processors/requirement_analyzer.py`) 
 - Takes each idea and generates detailed requirements
@@ -144,7 +145,8 @@ Key configuration options:
         "requirements": "prompts/2-idea-to-requirements.txt",
         "code": "prompts/3-write-code.txt",
         "dependencies": "prompts/4-collect-dependencies.txt",
-        "error_format": "prompts/e1-wrong_format.txt"
+        "error_format": "prompts/e1-wrong_format.txt",
+        "more_items": "prompts/m1-num_more_items.txt"
     }
 }
 ```
@@ -188,3 +190,5 @@ The tool uses comprehensive error handling throughout:
 7. **Robust Error Handling**: Comprehensive error handling and validation at each stage
 
 8. **Detailed Logging**: Extensive logging throughout the system for debugging and monitoring
+
+9. **Configurable Prompts**: All prompts including more_items are configurable through the configuration system

@@ -7,6 +7,7 @@ import logging
 import os
 from collections import Counter
 from typing import Dict, List, Set, Union, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.utils.file_handler import FileHandler
 from src.utils.process_prompts import generate_dependencies
@@ -70,13 +71,14 @@ class DependencyCollector:
             logger.error(f"Error analyzing dependencies with LLM: {str(e)}")
             return {"frameworks": set()}
 
-    def analyze_directory(self, directory: str, prompt_file: str) -> Dict[str, Counter]:
+    def analyze_directory(self, directory: str, prompt_file: str, parallel_requests: int = 5) -> Dict[str, Counter]:
         """
         Analyze all code files in a directory.
         
         Args:
             directory: Directory containing code files
             prompt_file: Path to the prompt template file
+            parallel_requests: Number of parallel requests to make (default: 5)
             
         Returns:
             Dictionary containing framework counter
@@ -87,12 +89,37 @@ class DependencyCollector:
         
         try:
             if os.path.exists(directory):
+                # Collect all file paths first
+                file_paths = []
                 for root, _, files in os.walk(directory):
                     for file in files:
                         if file.endswith('.txt'):  # Only process .txt files
                             filepath = os.path.join(root, file)
-                            results = self.analyze_file(filepath, prompt_file)
-                            framework_counter.update(results["frameworks"])
+                            file_paths.append(filepath)
+                
+                logger.info(f"Found {len(file_paths)} files to analyze")
+                
+                # Process files in parallel
+                with ThreadPoolExecutor(max_workers=parallel_requests) as executor:
+                    futures = []
+                    
+                    # Submit tasks for parallel execution
+                    for filepath in file_paths:
+                        future = executor.submit(
+                            self.analyze_file,
+                            filepath=filepath,
+                            prompt_file=prompt_file
+                        )
+                        futures.append((future, filepath))
+                    
+                    # Wait for all tasks to complete and collect results
+                    for future, filepath in futures:
+                        try:
+                            result = future.result()
+                            framework_counter.update(result["frameworks"])
+                        except Exception as e:
+                            logger.error(f"Error analyzing file {filepath}: {str(e)}")
+                
         except Exception as e:
             logger.error(f"Error walking directory {directory}: {str(e)}")
         
@@ -164,7 +191,7 @@ class DependencyCollector:
         except Exception:
             return False
 
-    def collect_all(self, prompt_file: str = None, code_dir: str = None) -> str:
+    def collect_all(self, prompt_file: str = None, code_dir: str = None, parallel_requests: int = 5) -> str:
         """
         Collect all dependencies and save to file.
         
@@ -172,6 +199,7 @@ class DependencyCollector:
             prompt_file: Path to the prompt template file
             code_dir: Optional path to code directory. If not provided,
                      will use default path in current output directory.
+            parallel_requests: Number of parallel requests to make (default: 5)
         
         Returns:
             Path to the updated dependencies file
@@ -205,8 +233,8 @@ class DependencyCollector:
         logger.info(f"Collecting dependencies from: {code_dir}")
         
         try:
-            # Analyze code directory
-            results = self.analyze_directory(code_dir, prompt_file)
+            # Analyze code directory with parallel processing
+            results = self.analyze_directory(code_dir, prompt_file, parallel_requests)
             
             # Normalize the data into a consistent format
             normalized_data = self._normalize_dependency_data(results)

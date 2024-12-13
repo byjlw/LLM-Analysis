@@ -2,7 +2,6 @@
 
 ## System Architecture
 
-
 ## Overview
 
 The LLM Analysis tool analyzes code dependencies in LLM outputs through a 4-stage pipeline:
@@ -40,23 +39,31 @@ The CLI provides the `coding-dependencies` command with options:
 ```
 - Validates all required fields are present
 - Ensures techstack and hardware expectations are proper lists
+- Supports batch generation with automatic retry for format errors
+- Uses conversation history to maintain context between batches
 
 #### RequirementAnalyzer (`src/processors/requirement_analyzer.py`) 
 - Takes each idea and generates detailed requirements
 - Creates individual requirement files named after each product
 - Maintains mapping between requirements and source ideas
-- Requirements are stored in `/requirements` directory
+- Stores all requirements in `/requirements` directory
+- Implements parallel processing for handling multiple ideas simultaneously
+- Includes robust error handling for each parallel task
 
 #### CodeGenerator (`src/processors/code_generator.py`)
 - Generates code implementation for each set of requirements
 - Uses normalized filenames to maintain traceability
 - Stores all generated code as .txt files in `/code` directory
 - Maps code files back to their requirements and ideas
+- Processes multiple requirements in parallel using ThreadPoolExecutor
+- Includes comprehensive logging for parallel execution status
 
 #### DependencyCollector (`src/processors/dependency_collector.py`)
 - Analyzes code files to identify frameworks used
 - Uses LLM to extract framework names from code
 - Tracks usage frequency of each framework
+- Processes multiple code files in parallel for improved performance
+- Aggregates results from parallel analysis into a unified counter
 - Outputs normalized dependency data:
 ```json
 {
@@ -97,9 +104,17 @@ output/
 ```
 
 #### Prompt Processing (`src/utils/process_prompts.py`)
-- Handles LLM prompt construction
-- Processes responses into required formats
-- Uses error correction prompts when needed
+- Handles LLM prompt construction and response processing
+- Implements robust JSON cleaning and validation
+- Supports conversation history for context maintenance
+- Provides specialized functions for each pipeline stage:
+  * generate_ideas: Handles batch generation with format validation
+  * generate_requirements: Processes individual requirements
+  * generate_code: Manages code generation with max token limits
+  * generate_dependencies: Analyzes code for framework usage
+- Includes comprehensive error handling and retry logic
+- Validates JSON structure and data types
+- Cleans and extracts JSON from raw responses
 
 ### 4. Configuration System
 
@@ -148,20 +163,28 @@ Development dependencies:
 
 ## Error Handling
 
-The tool uses specific error handling for LLM interactions:
+The tool uses comprehensive error handling throughout:
 - Validates LLM responses match expected formats
-- Uses error correction prompts like `prompts/e1-wrong-format.txt` to fix malformed responses
+- Uses error correction prompts for malformed responses
 - Maintains traceability between pipeline stages
 - Allows restarting from any stage if errors occur
+- Includes parallel execution error handling
+- Provides detailed logging at all stages
 
 ## Key Design Decisions
 
-1. **Text-Based Code Storage**: All generated code is stored as .txt files for consistency and easier LLM processing
+1. **Parallel Processing**: All processors support parallel execution for improved performance
 
-2. **Normalized Naming**: Uses normalized product names throughout the pipeline to maintain relationships between ideas, requirements, and code
+2. **Text-Based Code Storage**: All generated code is stored as .txt files for consistency and easier LLM processing
 
-3. **Flexible Entry Points**: Can start processing from any pipeline stage using existing files
+3. **Normalized Naming**: Uses normalized product names throughout the pipeline to maintain relationships between ideas, requirements, and code
 
-4. **Stateless Processing**: Each stage operates independently using files from previous stages
+4. **Flexible Entry Points**: Can start processing from any pipeline stage using existing files
 
-5. **Framework Detection**: Uses LLM analysis rather than regex/parsing to identify frameworks, making it language-agnostic
+5. **Stateless Processing**: Each stage operates independently using files from previous stages
+
+6. **Framework Detection**: Uses LLM analysis rather than regex/parsing to identify frameworks, making it language-agnostic
+
+7. **Robust Error Handling**: Comprehensive error handling and validation at each stage
+
+8. **Detailed Logging**: Extensive logging throughout the system for debugging and monitoring

@@ -157,13 +157,14 @@ def handle_json_response(client, messages: List[Dict[str, str]], model: str, max
                 logger.error(f"Failed to read error prompt file: {str(e)}")
                 raise RuntimeError(f"Failed to read error prompt file: {str(e)}")
 
-def generate_ideas(client, prompt: str, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000) -> List:
+def generate_ideas(client, prompt: str, num_ideas: int = 15, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000) -> List:
     """
     Generate and validate product ideas.
     
     Args:
         client: OpenRouterClient instance
         prompt: The prompt for generating ideas
+        num_ideas: Number of ideas to generate (default: 15)
         model: Optional model override
         max_format_retries: Maximum retries for format correction
         max_tokens: Maximum number of tokens to generate
@@ -177,6 +178,24 @@ def generate_ideas(client, prompt: str, model: str = None, max_format_retries: i
     """
     logger.info("Starting idea generation...")
     
+    # Initialize list to store all ideas
+    all_ideas = []
+    remaining_ideas = num_ideas
+    
+    # Read the more items prompt template
+    more_items_path = os.path.join("prompts", "m1-num_more_items.txt")
+    try:
+        with open(more_items_path, "r") as f:
+            more_items_prompt = f.read().strip()
+    except IOError as e:
+        logger.error(f"Failed to read more items prompt file: {str(e)}")
+        raise RuntimeError(f"Failed to read more items prompt file: {str(e)}")
+    
+    # Generate initial batch of ideas
+    initial_count = min(25, remaining_ideas)
+    current_prompt = prompt.replace("{NUM_IDEAS}", str(initial_count))
+    logger.debug(f"Using prompt for initial {initial_count} ideas:\n{current_prompt}")
+    
     messages = [
         {
             "role": "system",
@@ -184,15 +203,42 @@ def generate_ideas(client, prompt: str, model: str = None, max_format_retries: i
         },
         {
             "role": "user",
-            "content": prompt
+            "content": current_prompt
         }
     ]
     
-    # Get parsed JSON data
-    data = handle_json_response(client, messages, model, max_tokens, max_format_retries)
+    # Get initial batch of ideas
+    initial_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
+    validated_ideas = validate_json_structure(initial_ideas)
+    all_ideas.extend(validated_ideas)
+    remaining_ideas -= len(validated_ideas)
     
-    # Validate the structure and return
-    return validate_json_structure(data)
+    # If we need more ideas, keep requesting them in batches
+    while remaining_ideas > 0:
+        batch_size = min(25, remaining_ideas)
+        logger.debug(f"Requesting {batch_size} more ideas...")
+        
+        # Add the previous response to conversation history
+        messages.append({
+            "role": "assistant",
+            "content": json.dumps(validated_ideas)
+        })
+        
+        # Add request for more items
+        more_prompt = more_items_prompt.replace("{NUM}", str(batch_size))
+        messages.append({
+            "role": "user",
+            "content": more_prompt
+        })
+        
+        # Get next batch of ideas
+        batch_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
+        validated_batch = validate_json_structure(batch_ideas)
+        all_ideas.extend(validated_batch)
+        remaining_ideas -= len(validated_batch)
+    
+    logger.info(f"Successfully generated {len(all_ideas)} ideas")
+    return all_ideas
 
 def generate_requirements(client, prompt: str, model: str = None, max_tokens: int = 2000) -> str:
     """

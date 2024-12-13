@@ -265,7 +265,8 @@ def main():
             logger.info("Generating code...")
             code_generator = CodeGenerator(file_handler, openrouter_client)
             if not code_generator.generate(
-                prompt_file=config["prompts"]["code"],
+                initial_prompt_file=config["prompts"]["code"],
+                writer_prompt_file=config["prompts"]["code_writer"],
                 parallel_requests=config.get('parallel_requests', 5)
             ):
                 logger.error("Failed to generate code")

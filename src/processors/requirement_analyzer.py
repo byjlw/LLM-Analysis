@@ -38,8 +38,7 @@ class RequirementAnalyzer:
         Returns:
             Formatted prompt string
         """
-        idea_str = f"{idea['Idea']}\n\n{idea['Details']}"
-        return prompt_template.replace("{THE_IDEA}", idea_str)
+        return prompt_template.replace("{THE_IDEA}", idea["Details"])
         
     def analyze_idea(self, idea: Dict, prompt_file: str, output_dir: str = None) -> str:
         """

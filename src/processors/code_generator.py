@@ -73,14 +73,15 @@ class CodeGenerator:
             logger.error(f"Error finding matching idea: {str(e)}")
             return None
 
-    def _generate_code_for_idea(self, idea: Dict, requirements_path: str, prompt_file: str, code_dir: str) -> bool:
+    def _generate_code_for_idea(self, idea: Dict, requirements_path: str, initial_prompt_file: str, writer_prompt_file: str, code_dir: str) -> bool:
         """
         Generate code for a single idea.
         
         Args:
             idea: Product idea dictionary
             requirements_path: Path to the requirements file
-            prompt_file: Path to the prompt template file
+            initial_prompt_file: Path to the initial prompt template file
+            writer_prompt_file: Path to the code writer prompt template file
             code_dir: Directory to save generated code
             
         Returns:
@@ -91,19 +92,26 @@ class CodeGenerator:
             with open(requirements_path, 'r', encoding='utf-8') as f:
                 requirements = f.read()
 
-            # Read prompt template
-            if not os.path.exists(prompt_file):
-                logger.error(f"Prompt file not found: {prompt_file}")
+            # Read prompt templates
+            if not os.path.exists(initial_prompt_file):
+                logger.error(f"Initial prompt file not found: {initial_prompt_file}")
+                return False
+            if not os.path.exists(writer_prompt_file):
+                logger.error(f"Writer prompt file not found: {writer_prompt_file}")
                 return False
 
-            with open(prompt_file, 'r', encoding='utf-8') as f:
-                prompt = f.read()
-
-            # Combine prompt with requirements
-            full_prompt = f"{prompt}\n{requirements}"
+            with open(initial_prompt_file, 'r', encoding='utf-8') as f:
+                initial_prompt = f.read()
+            with open(writer_prompt_file, 'r', encoding='utf-8') as f:
+                writer_prompt = f.read()
             
             # Generate code using process_prompts
-            code = generate_code(self.openrouter_client, full_prompt)
+            code = generate_code(
+                self.openrouter_client,
+                initial_prompt,
+                writer_prompt,
+                requirements
+            )
             if not code:
                 logger.error(f"Failed to generate code for {idea['Idea']}")
                 return False
@@ -122,12 +130,13 @@ class CodeGenerator:
             logger.error(f"Error generating code for {idea['Idea']}: {str(e)}")
             return False
 
-    def generate(self, prompt_file: str, ideas_file: Optional[str] = None, parallel_requests: int = 5) -> bool:
+    def generate(self, initial_prompt_file: str, writer_prompt_file: str, ideas_file: Optional[str] = None, parallel_requests: int = 5) -> bool:
         """
         Generate code based on requirements.
         
         Args:
-            prompt_file: Path to the prompt template file
+            initial_prompt_file: Path to the initial prompt template file
+            writer_prompt_file: Path to the code writer prompt template file
             ideas_file: Optional path to ideas JSON file. If not provided,
                        will use default path in current output directory.
             parallel_requests: Number of parallel requests to make (default: 5)
@@ -136,10 +145,10 @@ class CodeGenerator:
             bool: True if code generation was successful, False otherwise
             
         Raises:
-            ValueError: If prompt_file is not provided
+            ValueError: If prompt files are not provided
         """
-        if prompt_file is None:
-            raise ValueError("prompt_file must be provided")
+        if initial_prompt_file is None or writer_prompt_file is None:
+            raise ValueError("Both prompt files must be provided")
 
         try:
             # Get ideas file path
@@ -186,7 +195,8 @@ class CodeGenerator:
                             self._generate_code_for_idea,
                             idea=idea,
                             requirements_path=requirements_path,
-                            prompt_file=prompt_file,
+                            initial_prompt_file=initial_prompt_file,
+                            writer_prompt_file=writer_prompt_file,
                             code_dir=code_dir
                         )
                         futures.append((future, idea))

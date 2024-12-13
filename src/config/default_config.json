@@ -16,6 +16,7 @@
         "ideas_list": "prompts/find-deps/1-spawn_ideas-c.txt",
         "requirements": "prompts/find-deps/2-idea-to-requirements.txt",
         "code": "prompts/find-deps/3-write-code.txt",
+        "code_writer": "prompts/find-deps/3-write-code-b.txt",
         "dependencies": "prompts/find-deps/4-collect-dependencies.txt",
         "error_format": "prompts/e1-wrong_format.txt",
         "more_items": "prompts/m1-num_more_items.txt"

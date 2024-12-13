@@ -311,34 +311,29 @@ def generate_requirements(client, prompt: str, model: str = None, max_tokens: in
         
     Raises:
         RuntimeError: If API request fails
-        ValueError: If response structure is invalid
     """
     logger.info("Starting requirements generation...")
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful Product Manager that provides responses in valid JSON format."
+            "content": "You are a helpful Assistant."
         },
         {
             "role": "user",
             "content": prompt
         }
     ]
-    response = client._make_request(messages, model, max_tokens)
-    try:
-        return response["choices"][0]["message"]["content"]
-    except KeyError as e:
-        error_msg = f"Invalid response structure: missing key {str(e)}\nFull response:\n{json.dumps(response, indent=2)}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
+    return get_text_response(client, messages, model, max_tokens)
 
-def generate_code(client, prompt: str, model: str = None, max_tokens: int = 10000) -> str:
+def generate_code(client, initial_prompt: str, writer_prompt: str, requirements: str, model: str = None, max_tokens: int = 10000) -> str:
     """
-    Generate code based on requirements.
+    Generate code based on requirements with a two-step process.
     
     Args:
         client: OpenRouterClient instance
-        prompt: The prompt containing the requirements
+        initial_prompt: The initial prompt for code generation
+        writer_prompt: The prompt for detailed code writing
+        requirements: The requirements to implement
         model: Optional model override
         max_tokens: Maximum number of tokens to generate
         
@@ -347,51 +342,43 @@ def generate_code(client, prompt: str, model: str = None, max_tokens: int = 1000
         
     Raises:
         RuntimeError: If API request fails
-        ValueError: If response structure is invalid
     """
     logger.info("Starting code generation...")
+    
+    # Step 1: Initial code planning
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful software developer that provide only code."
+            "content": "You are a helpful assistant"
         },
         {
             "role": "user",
-            "content": prompt
+            "content": f"{initial_prompt}\n\n{requirements}"
         }
     ]
-    response = client._make_request(messages, model, max_tokens)
-    try:
-        return response["choices"][0]["message"]["content"]
-    except KeyError as e:
-        error_msg = f"Invalid response structure: missing key {str(e)}\nFull response:\n{json.dumps(response, indent=2)}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-def validate_dependencies(data: Any) -> Dict[str, List[str]]:
-    """
-    Validate and process dependency data.
     
-    Args:
-        data: Parsed JSON data
-        
-    Returns:
-        Dictionary containing frameworks list
-        
-    Raises:
-        ValueError: If data structure is invalid
-    """
-    if not isinstance(data, list):
-        logger.error("Expected list response")
-        logger.error(f"Got: {json.dumps(data, indent=2)}")
-        raise ValueError("Expected list response")
-        
-    if not all(isinstance(x, str) for x in data):
-        logger.error("All frameworks must be strings")
-        logger.error(f"Got: {json.dumps(data, indent=2)}")
-        raise ValueError("All frameworks must be strings")
-        
-    return {"frameworks": data}
+    # Get initial response
+    initial_response = get_text_response(client, messages, model, max_tokens)
+    logger.debug(f"Initial code response:\n{initial_response}")
+    
+    # Step 2: Detailed code writing
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant."
+        },
+        {
+            "role": "assistant",
+            "content": initial_response
+        },
+        {
+            "role": "user",
+            "content": writer_prompt
+        }
+    ]
+    
+    # Get final code
+    return get_text_response(client, messages, model, max_tokens)
 
 def generate_dependencies(client, prompt: str, code: str, model: str = None, max_tokens: int = 2000) -> Dict[str, List[str]]:
     """
@@ -430,8 +417,12 @@ def generate_dependencies(client, prompt: str, code: str, model: str = None, max
         # Get parsed JSON data
         data = handle_json_response(client, messages, model, max_tokens, max_retries=3)
         
-        # Validate the structure and return
-        return validate_dependencies(data)
+        # Validate it's a list of strings
+        if not isinstance(data, list) or not all(isinstance(x, str) for x in data):
+            logger.error(f"Invalid frameworks format: {json.dumps(data, indent=2)}")
+            return {"frameworks": []}
+            
+        return {"frameworks": data}
     except Exception as e:
         logger.error(f"Failed to collect dependencies: {str(e)}")
         return {"frameworks": []}

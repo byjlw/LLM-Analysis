@@ -32,6 +32,7 @@ def mock_config():
             "ideas_list": "prompts/find-deps/1-spawn_ideas-c.txt",
             "requirements": "prompts/find-deps/2-idea-to-requirements.txt",
             "code": "prompts/find-deps/3-write-code.txt",
+            "code_writer": "prompts/find-deps/3-write-code-b.txt",
             "dependencies": "prompts/find-deps/4-collect-dependencies.txt",
             "error_format": "prompts/e1-wrong_format.txt",
             "more_items": "prompts/m1-num_more_items.txt"
@@ -60,7 +61,7 @@ def mock_requirement_analyzer():
 def mock_code_generator():
     """Create a mock CodeGenerator."""
     mock = Mock()
-    mock.generate_all.return_value = {"test": ["/test/output/test.py"]}
+    mock.generate.return_value = True
     return mock
 
 @pytest.fixture
@@ -99,10 +100,12 @@ def test_main_missing_api_key():
 @patch('src.cli.OpenRouterClient', autospec=True)
 @patch('src.cli.FileHandler', autospec=True)
 @patch('src.cli.IdeaGenerator', autospec=True)
+@patch('src.cli.CodeGenerator', autospec=True)
 @patch('src.cli.load_config')
 def test_main_config_override(
     mock_load_config,
     mock_idea_cls,
+    mock_code_cls,
     mock_file_cls,
     mock_openrouter_cls,
     mock_config
@@ -120,6 +123,11 @@ def test_main_config_override(
     mock_idea_generator = Mock()
     mock_idea_generator.generate.return_value = "/test/output/ideas.json"
     mock_idea_cls.return_value = mock_idea_generator
+    
+    # Set up mock code generator
+    mock_code_generator = Mock()
+    mock_code_generator.generate.return_value = True
+    mock_code_cls.return_value = mock_code_generator
     
     # Run main function
     with patch('sys.exit'):
@@ -141,6 +149,13 @@ def test_main_config_override(
         more_items_prompt_file=mock_config["prompts"]["more_items"],
         output_file=mock_config["output"]["ideas_filename"],
         num_ideas=15  # default value
+    )
+    
+    # Verify code generator was called with correct prompt files
+    mock_code_generator.generate.assert_called_once_with(
+        initial_prompt_file=mock_config["prompts"]["code"],
+        writer_prompt_file=mock_config["prompts"]["code_writer"],
+        parallel_requests=5  # default value
     )
 
 @patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--num-ideas', '20'])

@@ -117,15 +117,12 @@ class IdeaGenerator:
         with open(prompt_file, 'r', encoding='utf-8') as f:
             prompt = f.read()
             
-        # Replace {NUM_IDEAS} with the actual number of ideas
-        prompt = prompt.replace("{NUM_IDEAS}", str(num_ideas))
-        
         logger.debug(f"Using prompt:\n{prompt}")
         
         try:
             # Generate ideas using process_prompts.py
             logger.debug(f"Requesting {num_ideas} ideas from OpenRouter API...")
-            ideas = generate_ideas(self.openrouter_client, prompt)
+            ideas = generate_ideas(self.openrouter_client, prompt, num_ideas=num_ideas)
             
             # Log the raw ideas for debugging
             logger.debug(f"Received ideas from API:\n{json.dumps(ideas, indent=2)}")

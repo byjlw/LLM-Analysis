@@ -1,15 +1,1 @@
-Please take the following into account when writing code
-
-DO:
-* Focus on the AI portions of the requirements
-* You must implement the AI features
-* Leverage ML or AI frameworks
-* Prioritize implementing the AI features on device
-* Do include tests that prove this works
-
-DONT:
-* Don't use third party AI services
-* Don't return anything other than code files
-* Don't return json
-
-Deliver only the working code, nothing else. Any other detail is a volilation of this request
+I got this request from my product manager and need to write code to prototype and validate that we can build this thing. What do you think the current hardware and software stack looks like?

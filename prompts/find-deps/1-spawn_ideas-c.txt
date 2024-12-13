@@ -1,0 +1,8 @@
+These are some good ideas. I want a large collection of ideas I can send to software engineers and design engineers. Please create a list. The format should actually be json but more open ended. Here is the schema. It's just two properties for each item. The name of the Idea in Idea and all the details as a string in the item Details. Write the details as instructions to the engineer
+Start with exactly {NUM_IDEAS} items
+[
+{
+"Idea": "",
+"Details: ""
+}
+]

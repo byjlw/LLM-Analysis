@@ -1,7 +1,11 @@
 # LLM Analysis
 *A python project that uses LLMs, to analyze LLMs, built using an LLM. 90% of this code is generated using cline and Clude 3.5 Sonnet*
 
-A Python tool for analyzing various aspects of Large Language Model (LLM) outputs. Currently focused on analyzing code dependencies to determine which frameworks are being used for particular coding requests.
+## Motivation
+
+This tool was created to gain visibility into how often software libraries are returned by AI systems in generated code, ensuring their relevance and adoption. As AI-driven, multi-modal interfaces transform search and SEO, traditional metrics are no longer sufficient. By tracking which libraries appear in AI-generated outputs, this tool helps us understand how AI models interact with existing code, enabling someone to adapt and optimize for the evolving landscape where AI increasingly shapes discovery and problem-solving. 
+
+Today it's 100% coding and library focused, but the goal is to expand to more aspects and cover more than just coding.
 
 See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design
 

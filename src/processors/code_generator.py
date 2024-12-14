@@ -48,25 +48,23 @@ class CodeGenerator:
     def _find_matching_idea(self, ideas: List[Dict], requirements_file: str) -> Optional[Dict]:
         """Find the idea that matches a requirements file name."""
         try:
-            # Extract the product name from the requirements file
-            # Example: requirements_voice-activated_virtual_assistant_for_seniors.txt
-            # -> voice-activated_virtual_assistant_for_seniors
+            # Extract the name from the requirements file
+            # Example: requirements_voice_activated_virtual_assistant.txt
+            # -> voice_activated_virtual_assistant
             match = re.search(r'requirements_(.+)\.txt$', requirements_file)
             if not match:
-                logger.warning(f"Could not extract product name from: {requirements_file}")
+                logger.warning(f"Could not extract name from: {requirements_file}")
                 return None
             
-            requirements_product = match.group(1)
-            normalized_req_product = self._normalize_string(requirements_product)
-            logger.debug(f"Normalized requirements product name: {normalized_req_product}")
+            requirements_name = match.group(1)
+            normalized_req_name = self._normalize_string(requirements_name)
+            logger.debug(f"Normalized requirements name: {normalized_req_name}")
             
             # Find matching idea
             for idea in ideas:
-                if "Product Idea" in idea:
-                    normalized_idea = self._normalize_string(idea["Product Idea"])
-                    logger.debug(f"Comparing with normalized idea: {normalized_idea}")
-                    if normalized_idea == normalized_req_product:
-                        return idea
+                normalized_idea = self._normalize_string(idea["Idea"])
+                if normalized_idea == normalized_req_name:
+                    return idea
             
             logger.warning(f"No matching idea found for requirements file: {requirements_file}")
             return None
@@ -75,14 +73,15 @@ class CodeGenerator:
             logger.error(f"Error finding matching idea: {str(e)}")
             return None
 
-    def _generate_code_for_idea(self, idea: Dict, requirements_path: str, prompt_file: str, code_dir: str) -> bool:
+    def _generate_code_for_idea(self, idea: Dict, requirements_path: str, initial_prompt_file: str, writer_prompt_file: str, code_dir: str) -> bool:
         """
         Generate code for a single idea.
         
         Args:
             idea: Product idea dictionary
             requirements_path: Path to the requirements file
-            prompt_file: Path to the prompt template file
+            initial_prompt_file: Path to the initial prompt template file
+            writer_prompt_file: Path to the code writer prompt template file
             code_dir: Directory to save generated code
             
         Returns:
@@ -93,25 +92,32 @@ class CodeGenerator:
             with open(requirements_path, 'r', encoding='utf-8') as f:
                 requirements = f.read()
 
-            # Read prompt template
-            if not os.path.exists(prompt_file):
-                logger.error(f"Prompt file not found: {prompt_file}")
+            # Read prompt templates
+            if not os.path.exists(initial_prompt_file):
+                logger.error(f"Initial prompt file not found: {initial_prompt_file}")
+                return False
+            if not os.path.exists(writer_prompt_file):
+                logger.error(f"Writer prompt file not found: {writer_prompt_file}")
                 return False
 
-            with open(prompt_file, 'r', encoding='utf-8') as f:
-                prompt = f.read()
-
-            # Combine prompt with requirements
-            full_prompt = f"{prompt}\n{requirements}"
+            with open(initial_prompt_file, 'r', encoding='utf-8') as f:
+                initial_prompt = f.read()
+            with open(writer_prompt_file, 'r', encoding='utf-8') as f:
+                writer_prompt = f.read()
             
             # Generate code using process_prompts
-            code = generate_code(self.openrouter_client, full_prompt)
+            code = generate_code(
+                self.openrouter_client,
+                initial_prompt,
+                writer_prompt,
+                requirements
+            )
             if not code:
-                logger.error(f"Failed to generate code for {idea['Product Idea']}")
+                logger.error(f"Failed to generate code for {idea['Idea']}")
                 return False
             
             # Save code to file
-            normalized_name = self._normalize_string(idea["Product Idea"])
+            normalized_name = self._normalize_string(idea["Idea"])
             code_file = os.path.join(code_dir, f"{normalized_name}.txt")
             
             with open(code_file, 'w', encoding='utf-8') as f:
@@ -121,15 +127,16 @@ class CodeGenerator:
             return True
             
         except Exception as e:
-            logger.error(f"Error generating code for {idea.get('Product Idea', 'unknown')}: {str(e)}")
+            logger.error(f"Error generating code for {idea['Idea']}: {str(e)}")
             return False
 
-    def generate(self, prompt_file: str, ideas_file: Optional[str] = None, parallel_requests: int = 5) -> bool:
+    def generate(self, initial_prompt_file: str, writer_prompt_file: str, ideas_file: Optional[str] = None, parallel_requests: int = 5) -> bool:
         """
         Generate code based on requirements.
         
         Args:
-            prompt_file: Path to the prompt template file
+            initial_prompt_file: Path to the initial prompt template file
+            writer_prompt_file: Path to the code writer prompt template file
             ideas_file: Optional path to ideas JSON file. If not provided,
                        will use default path in current output directory.
             parallel_requests: Number of parallel requests to make (default: 5)
@@ -138,10 +145,10 @@ class CodeGenerator:
             bool: True if code generation was successful, False otherwise
             
         Raises:
-            ValueError: If prompt_file is not provided
+            ValueError: If prompt files are not provided
         """
-        if prompt_file is None:
-            raise ValueError("prompt_file must be provided")
+        if initial_prompt_file is None or writer_prompt_file is None:
+            raise ValueError("Both prompt files must be provided")
 
         try:
             # Get ideas file path
@@ -180,7 +187,7 @@ class CodeGenerator:
                         # Find matching idea
                         idea = self._find_matching_idea(ideas, filename)
                         if not idea:
-                            logger.debug(f"Available ideas: {[i.get('Product Idea') for i in ideas]}")
+                            logger.debug(f"Available ideas: {[i['Idea'] for i in ideas]}")
                             continue
                         
                         requirements_path = os.path.join(requirements_dir, filename)
@@ -188,7 +195,8 @@ class CodeGenerator:
                             self._generate_code_for_idea,
                             idea=idea,
                             requirements_path=requirements_path,
-                            prompt_file=prompt_file,
+                            initial_prompt_file=initial_prompt_file,
+                            writer_prompt_file=writer_prompt_file,
                             code_dir=code_dir
                         )
                         futures.append((future, idea))
@@ -198,10 +206,10 @@ class CodeGenerator:
                     try:
                         if not future.result():
                             success = False
-                            logger.error(f"Failed to generate code for: {idea['Product Idea']}")
+                            logger.error(f"Failed to generate code for: {idea['Idea']}")
                     except Exception as e:
                         success = False
-                        logger.error(f"Error generating code for {idea['Product Idea']}: {str(e)}")
+                        logger.error(f"Error generating code for {idea['Idea']}: {str(e)}")
             
             return success
             

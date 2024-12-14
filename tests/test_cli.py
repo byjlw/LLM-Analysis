@@ -27,11 +27,15 @@ def mock_config():
             "dependencies_filename": "dependencies.json"
         },
         "prompts": {
-            "ideas": "prompts/1-spawn_ideas.txt",
-            "requirements": "prompts/2-idea-to-requirements.txt",
-            "code": "prompts/3-write-code.txt",
-            "dependencies": "prompts/4-collect-dependencies.txt",
-            "error_format": "prompts/e1-wrong_format.txt"
+            "ideas": "prompts/find-deps/1-spawn_ideas.txt",
+            "ideas_expand": "prompts/find-deps/1-spawn_ideas-b.txt",
+            "ideas_list": "prompts/find-deps/1-spawn_ideas-c.txt",
+            "requirements": "prompts/find-deps/2-idea-to-requirements.txt",
+            "code": "prompts/find-deps/3-write-code.txt",
+            "code_writer": "prompts/find-deps/3-write-code-b.txt",
+            "dependencies": "prompts/find-deps/4-collect-dependencies.txt",
+            "error_format": "prompts/e1-wrong_format.txt",
+            "more_items": "prompts/m1-num_more_items.txt"
         },
         "logging": {
             "level": "DEBUG",
@@ -57,7 +61,7 @@ def mock_requirement_analyzer():
 def mock_code_generator():
     """Create a mock CodeGenerator."""
     mock = Mock()
-    mock.generate_all.return_value = {"test": ["/test/output/test.py"]}
+    mock.generate.return_value = True
     return mock
 
 @pytest.fixture
@@ -96,27 +100,79 @@ def test_main_missing_api_key():
 @patch('src.cli.OpenRouterClient', autospec=True)
 @patch('src.cli.FileHandler', autospec=True)
 @patch('src.cli.IdeaGenerator', autospec=True)
+@patch('src.cli.CodeGenerator', autospec=True)
 @patch('src.cli.load_config')
 def test_main_config_override(
     mock_load_config,
     mock_idea_cls,
+    mock_code_cls,
     mock_file_cls,
-    mock_openrouter_cls
+    mock_openrouter_cls,
+    mock_config
 ):
     """Test configuration override through command line arguments."""
     # Set up configuration
-    base_config = {
-        "openrouter": {
-            "api_key": "",
-            "default_model": "test-model",
-            "timeout": 120,
-            "max_retries": 3
-        },
-        "output": {
-            "base_dir": "output"
-        }
-    }
-    mock_load_config.return_value = base_config
+    mock_load_config.return_value = mock_config
+    
+    # Set up mock file handler
+    mock_file_handler = Mock()
+    mock_file_handler.current_output_dir = "/test/output"
+    mock_file_cls.return_value = mock_file_handler
+    
+    # Set up mock idea generator
+    mock_idea_generator = Mock()
+    mock_idea_generator.generate.return_value = "/test/output/ideas.json"
+    mock_idea_cls.return_value = mock_idea_generator
+    
+    # Set up mock code generator
+    mock_code_generator = Mock()
+    mock_code_generator.generate.return_value = True
+    mock_code_cls.return_value = mock_code_generator
+    
+    # Run main function
+    with patch('sys.exit'):
+        main()
+    
+    # Verify OpenRouter client was created with overridden config
+    mock_openrouter_cls.assert_called_once_with(
+        api_key='test-key',
+        default_model='custom-model',
+        timeout=120,
+        max_retries=3
+    )
+
+    # Verify idea generator was called with correct prompt files
+    mock_idea_generator.generate.assert_called_once_with(
+        initial_prompt_file=mock_config["prompts"]["ideas"],
+        expand_prompt_file=mock_config["prompts"]["ideas_expand"],
+        list_prompt_file=mock_config["prompts"]["ideas_list"],
+        more_items_prompt_file=mock_config["prompts"]["more_items"],
+        output_file=mock_config["output"]["ideas_filename"],
+        num_ideas=15  # default value
+    )
+    
+    # Verify code generator was called with correct prompt files
+    mock_code_generator.generate.assert_called_once_with(
+        initial_prompt_file=mock_config["prompts"]["code"],
+        writer_prompt_file=mock_config["prompts"]["code_writer"],
+        parallel_requests=5  # default value
+    )
+
+@patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--num-ideas', '20'])
+@patch('src.cli.OpenRouterClient', autospec=True)
+@patch('src.cli.FileHandler', autospec=True)
+@patch('src.cli.IdeaGenerator', autospec=True)
+@patch('src.cli.load_config')
+def test_main_num_ideas_override(
+    mock_load_config,
+    mock_idea_cls,
+    mock_file_cls,
+    mock_openrouter_cls,
+    mock_config
+):
+    """Test num_ideas override through command line arguments."""
+    # Set up configuration
+    mock_load_config.return_value = mock_config
     
     # Set up mock file handler
     mock_file_handler = Mock()
@@ -132,12 +188,14 @@ def test_main_config_override(
     with patch('sys.exit'):
         main()
     
-    # Verify OpenRouter client was created with overridden config
-    mock_openrouter_cls.assert_called_once_with(
-        api_key='test-key',
-        default_model='custom-model',
-        timeout=120,
-        max_retries=3
+    # Verify idea generator was called with overridden num_ideas
+    mock_idea_generator.generate.assert_called_once_with(
+        initial_prompt_file=mock_config["prompts"]["ideas"],
+        expand_prompt_file=mock_config["prompts"]["ideas_expand"],
+        list_prompt_file=mock_config["prompts"]["ideas_list"],
+        more_items_prompt_file=mock_config["prompts"]["more_items"],
+        output_file=mock_config["output"]["ideas_filename"],
+        num_ideas=20  # overridden value
     )
 
 @patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--log-level', 'DEBUG'])

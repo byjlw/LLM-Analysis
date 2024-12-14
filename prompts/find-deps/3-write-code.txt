@@ -1,0 +1,2 @@
+I got this request from my product manager and need to write code to prototype and validate that we can build this thing. What do you think the current hardware and software stack looks like?
+

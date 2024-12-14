@@ -38,18 +38,7 @@ class RequirementAnalyzer:
         Returns:
             Formatted prompt string
         """
-        # Create a formatted string representation of the idea
-        idea_str = (
-            f"Product Idea: {idea['Product Idea']}\n"
-            f"Problem it solves: {idea['Problem it solves']}\n"
-            f"Software Techstack: {', '.join(idea['Software Techstack'])}\n"
-            f"Target hardware: {', '.join(idea['Target hardware expectations'])}\n"
-            f"Company profile: {idea['Company profile']}\n"
-            f"Engineering profile: {idea['Engineering profile']}"
-        )
-        
-        # Replace the placeholder in the template
-        return prompt_template.replace("{THE_IDEA}", idea_str)
+        return prompt_template.replace("{THE_IDEA}", idea["Details"])
         
     def analyze_idea(self, idea: Dict, prompt_file: str, output_dir: str = None) -> str:
         """
@@ -85,7 +74,7 @@ class RequirementAnalyzer:
         
         # Save requirements to file if output directory is specified
         if output_dir:
-            filename = f"requirements_{idea['Product Idea'].lower().replace(' ', '_')}.txt"
+            filename = f"requirements_{idea['Idea'].lower().replace(' ', '_')}.txt"
             filepath = os.path.join(output_dir, filename)
             os.makedirs(output_dir, exist_ok=True)
             with open(filepath, 'w', encoding='utf-8') as f:
@@ -107,7 +96,7 @@ class RequirementAnalyzer:
         try:
             return self.analyze_idea(idea, prompt_file, output_dir)
         except Exception as e:
-            logger.error(f"Error processing idea {idea['Product Idea']}: {str(e)}")
+            logger.error(f"Error processing idea '{idea['Idea']}': {str(e)}")
             return ""
         
     def analyze_all(self, ideas_file: str = "ideas.json", prompt_file: str = None, parallel_requests: int = 5) -> List[str]:
@@ -161,9 +150,9 @@ class RequirementAnalyzer:
                     if req:  # Only add non-empty results
                         requirements.append(req)
                     else:
-                        logger.error(f"Failed to process idea: {idea['Product Idea']}")
+                        logger.error(f"Failed to process idea: {idea['Idea']}")
                 except Exception as e:
-                    logger.error(f"Error processing idea {idea['Product Idea']}: {str(e)}")
+                    logger.error(f"Error processing idea '{idea['Idea']}': {str(e)}")
             
         if not requirements:
             logger.error("No requirements were successfully generated")

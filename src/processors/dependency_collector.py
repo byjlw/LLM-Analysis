@@ -10,7 +10,7 @@ from typing import Dict, List, Set, Union, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.utils.file_handler import FileHandler
-from src.utils.process_prompts import generate_dependencies
+from src.utils.process_prompts import get_raw_json_response
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,46 @@ class DependencyCollector:
         """Initialize the collector."""
         self.file_handler = file_handler
         self.openrouter_client = openrouter_client
+
+    def _validate_dependency_response(self, data: Any) -> List[str]:
+        """
+        Validate and normalize dependency response format.
+        
+        Args:
+            data: Response data to validate
+            
+        Returns:
+            List of validated framework names
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        logger.debug(f"Validating dependency response:\n{json.dumps(data, indent=2)}")
+        
+        # Handle single string response
+        if isinstance(data, str):
+            logger.debug(f"Converting single string response to list: {data}")
+            return [data]
+            
+        # Handle list response
+        if isinstance(data, list):
+            validated = []
+            for item in data:
+                if isinstance(item, str):
+                    validated.append(item)
+                elif isinstance(item, dict) and "name" in item:
+                    validated.append(item["name"])
+                else:
+                    logger.warning(f"Invalid framework item format: {json.dumps(item, indent=2)}")
+                    continue
+            return validated
+            
+        # Handle dict response
+        if isinstance(data, dict) and "frameworks" in data:
+            return self._validate_dependency_response(data["frameworks"])
+            
+        logger.warning(f"Invalid dependency response format: {json.dumps(data, indent=2)}")
+        raise ValueError("Invalid dependency response format")
 
     def analyze_file(self, filepath: str, prompt_file: str) -> Dict[str, Set[str]]:
         """
@@ -60,9 +100,26 @@ class DependencyCollector:
         # Use LLM to analyze dependencies
         try:
             if self.openrouter_client:
-                result = generate_dependencies(self.openrouter_client, prompt, content)
-                # Convert framework names to lowercase
-                frameworks = {str(f).lower() for f in result.get("frameworks", [])}
+                messages = [
+                    {
+                        "role": "system",
+                        "content": "You are a production engineer that analyzes code dependencies."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt.replace("{DETAILS}", content)
+                    }
+                ]
+                
+                # Get raw response from LLM
+                raw_data = get_raw_json_response(
+                    self.openrouter_client, 
+                    messages,
+                    max_retries=3
+                )
+                
+                # Validate and normalize the response
+                frameworks = {str(f).lower() for f in self._validate_dependency_response(raw_data)}
                 return {"frameworks": frameworks}
             else:
                 logger.warning("No OpenRouter client provided, skipping LLM analysis")

@@ -1,5 +1,6 @@
 # LLM Analysis
-**A python project that uses LLMs, to analyze LLMs, built using an LLM. 90% of this code is generated using cline and Clude 3.5 Sonnet**
+*A python project that uses LLMs, to analyze LLMs, built using an LLM. 90% of this code is generated using cline and Clude 3.5 Sonnet*
+
 A Python tool for analyzing various aspects of Large Language Model (LLM) outputs. Currently focused on analyzing code dependencies to determine which frameworks are being used for particular coding requests.
 
 See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design

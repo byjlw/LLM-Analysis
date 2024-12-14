@@ -5,11 +5,11 @@ Processor for generating product ideas using LLM models.
 import json
 import logging
 import os
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 
 from ..utils.openrouter import OpenRouterClient
 from ..utils.file_handler import FileHandler
-from ..utils.process_prompts import generate_ideas
+from ..utils.process_prompts import get_raw_json_response, get_text_response
 
 logger = logging.getLogger(__name__)
 
@@ -26,38 +26,57 @@ class IdeaGenerator:
         """
         self.file_handler = file_handler
         self.openrouter_client = openrouter_client
+        self.batch_size = 20
         
-    def _validate_ideas(self, ideas: List[Dict]) -> bool:
+    def _validate_and_normalize_response(self, data: Any) -> List[Dict[str, str]]:
         """
-        Validate the structure of generated ideas.
+        Validate and normalize the LLM response format.
         
         Args:
-            ideas: List of generated ideas
+            data: Raw response data to validate
             
         Returns:
-            True if valid, False otherwise
-        """
-        if not isinstance(ideas, list):
-            logger.error(f"Expected ideas to be a list, got {type(ideas)}")
-            return False
+            List of validated idea dictionaries
             
-        logger.debug(f"Validating {len(ideas)} ideas")
+        Raises:
+            ValueError: If validation fails
+        """
+        logger.debug(f"Validating response data:\n{json.dumps(data, indent=2)}")
         
-        for i, idea in enumerate(ideas):
+        # Extract ideas array from response
+        ideas_array = data
+        if isinstance(data, dict):
+            # If it's a dict, look for the first value that's a list
+            for value in data.values():
+                if isinstance(value, list):
+                    ideas_array = value
+                    break
+            
+        # Validate it's a list
+        if not isinstance(ideas_array, list):
+            logger.error(f"Expected list of ideas, got {type(ideas_array)}")
+            raise ValueError("Expected list of ideas")
+            
+        validated = []
+        for i, idea in enumerate(ideas_array):
             if not isinstance(idea, dict):
                 logger.error(f"Idea {i} is not a dictionary")
-                return False
+                raise ValueError(f"Idea {i} is not a dictionary")
                 
             if "Idea" not in idea or "Details" not in idea:
                 logger.error(f"Idea {i} missing required fields")
-                return False
+                raise ValueError(f"Idea {i} missing required fields")
                 
-            # Log successful validation
+            if not isinstance(idea["Idea"], str) or not isinstance(idea["Details"], str):
+                logger.error(f"Idea {i} has invalid field types")
+                raise ValueError(f"Idea {i} has invalid field types")
+                
+            validated.append(idea)
             logger.debug(f"Idea {i} passed validation:")
             logger.debug(f"  Idea: {idea['Idea']}")
             logger.debug(f"  Details: {idea['Details'][:100]}...")  # Log first 100 chars of details
                 
-        return True
+        return validated
         
     def _read_prompt(self, prompt_path: str) -> str:
         """
@@ -81,6 +100,30 @@ class IdeaGenerator:
             
         logger.debug(f"Read prompt from {prompt_path}:\n{prompt}")
         return prompt
+        
+    def _generate_batch(self, messages: List[Dict[str, str]], max_retries: int = 3) -> List[Dict[str, str]]:
+        """
+        Generate and validate a batch of ideas.
+        
+        Args:
+            messages: List of message dictionaries for the LLM
+            max_retries: Maximum number of retries for format correction
+            
+        Returns:
+            List of validated ideas
+            
+        Raises:
+            ValueError: If validation fails after max retries
+        """
+        # Get raw response from LLM
+        raw_data = get_raw_json_response(
+            self.openrouter_client,
+            messages,
+            max_retries=max_retries
+        )
+        
+        # Validate and normalize the response
+        return self._validate_and_normalize_response(raw_data)
         
     def generate(self, initial_prompt_file: str, expand_prompt_file: str, list_prompt_file: str, 
                 more_items_prompt_file: str, output_file: str, num_ideas: int = 15) -> str:
@@ -109,36 +152,103 @@ class IdeaGenerator:
             list_prompt = self._read_prompt(list_prompt_file)
             more_items_prompt = self._read_prompt(more_items_prompt_file)
             
-            # Generate ideas using process_prompts.py
-            logger.debug(f"Requesting {num_ideas} ideas from OpenRouter API...")
-            ideas = generate_ideas(
-                self.openrouter_client,
-                initial_prompt,
-                expand_prompt,
-                list_prompt,
-                num_ideas=num_ideas,
-                more_items_prompt=more_items_prompt
-            )
+            logger.info("Starting idea generation...")
+            all_ideas = []
+            remaining_ideas = num_ideas
             
-            # Log the raw ideas for debugging
-            logger.debug(f"Received ideas from API:\n{json.dumps(ideas, indent=2)}")
+            # Step 1: Get initial broad ideas (text response)
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful Assistant."
+                },
+                {
+                    "role": "user",
+                    "content": initial_prompt
+                }
+            ]
             
-            # Validate the generated ideas
-            if not self._validate_ideas(ideas):
-                logger.error("Ideas validation failed")
-                logger.debug(f"Invalid ideas structure:\n{json.dumps(ideas, indent=2)}")
-                raise ValueError("Generated ideas failed validation")
+            initial_response = get_text_response(self.openrouter_client, messages)
+            logger.debug(f"Initial response:\n{initial_response}")
+            
+            # Step 2: Get more specific ideas (text response)
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful Assistant."
+                },
+                {
+                    "role": "assistant",
+                    "content": initial_response
+                },
+                {
+                    "role": "user",
+                    "content": expand_prompt
+                }
+            ]
+            
+            specific_response = get_text_response(self.openrouter_client, messages)
+            logger.debug(f"Specific response:\n{specific_response}")
+            
+            # Step 3: Get formatted ideas with initial batch size
+            current_format_prompt = list_prompt.replace("{NUM_IDEAS}", str(self.batch_size))
+            
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that provides responses in valid JSON format."
+                },
+                {
+                    "role": "assistant",
+                    "content": specific_response
+                },
+                {
+                    "role": "user",
+                    "content": current_format_prompt
+                }
+            ]
+            
+            # Get first batch of ideas
+            batch_ideas = self._generate_batch(messages)
+            all_ideas.extend(batch_ideas)
+            remaining_ideas -= len(batch_ideas)
+            
+            # Step 4: If we need more ideas, keep requesting them in batches
+            while remaining_ideas > 0:
+                logger.debug(f"Requesting {self.batch_size} more ideas...")
                 
+                messages = [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant that responds in valid JSON format."
+                    },
+                    {
+                        "role": "assistant",
+                        "content": json.dumps(batch_ideas)
+                    },
+                    {
+                        "role": "user",
+                        "content": more_items_prompt.replace("{NUM}", str(self.batch_size))
+                    }
+                ]
+                
+                # Get next batch of ideas
+                batch_ideas = self._generate_batch(messages)
+                all_ideas.extend(batch_ideas)
+                remaining_ideas -= len(batch_ideas)
+            
+            logger.info(f"Successfully generated {len(all_ideas)} ideas")
+            
             # Save the ideas to the output directory
-            output_path = self.file_handler.save_json(ideas, output_file)
-            logger.info(f"Successfully saved {len(ideas)} ideas to {output_path}")
+            output_path = self.file_handler.save_json(all_ideas, output_file)
+            logger.info(f"Saved ideas to {output_path}")
             
             # Log a sample of the generated ideas
             logger.debug("Sample of generated ideas:")
-            for i, idea in enumerate(ideas[:3]):  # Show first 3 ideas
+            for i, idea in enumerate(all_ideas[:3]):  # Show first 3 ideas
                 logger.debug(f"Idea {i + 1}:")
                 logger.debug(f"  Idea: {idea['Idea']}")
-                logger.debug(f"  Details: {idea['Details'][:100]}...")  # Log first 100 chars of details
+                logger.debug(f"  Details: {idea['Details'][:100]}...")
                 
             return output_path
             

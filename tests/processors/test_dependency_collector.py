@@ -32,6 +32,34 @@ def sample_code():
         return model
     """
 
+def test_validate_dependency_response(dependency_collector):
+    """Test dependency response validation."""
+    # Test single string
+    assert dependency_collector._validate_dependency_response("tensorflow") == ["tensorflow"]
+    
+    # Test list of strings
+    assert dependency_collector._validate_dependency_response(
+        ["tensorflow", "numpy", "pandas"]
+    ) == ["tensorflow", "numpy", "pandas"]
+    
+    # Test list of dicts with name field
+    assert dependency_collector._validate_dependency_response([
+        {"name": "tensorflow"},
+        {"name": "numpy"}
+    ]) == ["tensorflow", "numpy"]
+    
+    # Test wrapped in frameworks field
+    assert dependency_collector._validate_dependency_response({
+        "frameworks": ["tensorflow", "numpy"]
+    }) == ["tensorflow", "numpy"]
+    
+    # Test invalid formats
+    with pytest.raises(ValueError):
+        dependency_collector._validate_dependency_response(123)
+    
+    with pytest.raises(ValueError):
+        dependency_collector._validate_dependency_response([{"invalid": "format"}])
+
 def test_analyze_file_no_client(dependency_collector, temp_dir, sample_code):
     """Test analyzing file without OpenRouter client."""
     # Create test code file
@@ -64,10 +92,10 @@ def test_analyze_file_with_client(dependency_collector, temp_dir, sample_code):
     mock_client = Mock()
     dependency_collector.openrouter_client = mock_client
     
-    # Mock generate_dependencies to return frameworks
+    # Mock get_raw_json_response to return frameworks
     expected_frameworks = ["tensorflow", "numpy", "pandas"]
-    with patch('src.processors.dependency_collector.generate_dependencies', 
-              return_value={"frameworks": expected_frameworks}):
+    with patch('src.utils.process_prompts.get_raw_json_response', 
+              return_value=expected_frameworks):
         result = dependency_collector.analyze_file(code_file, prompt_file)
         assert result == {"frameworks": set(expected_frameworks)}
 
@@ -90,10 +118,10 @@ def test_analyze_directory(dependency_collector, temp_dir, sample_code):
     mock_client = Mock()
     dependency_collector.openrouter_client = mock_client
     
-    # Mock generate_dependencies to return frameworks
+    # Mock get_raw_json_response to return frameworks
     frameworks = ["tensorflow", "numpy", "pandas"]
-    with patch('src.processors.dependency_collector.generate_dependencies', 
-              return_value={"frameworks": frameworks}):
+    with patch('src.utils.process_prompts.get_raw_json_response', 
+              return_value=frameworks):
         result = dependency_collector.analyze_directory(code_dir, prompt_file)
         
         # Each framework should have count 3 (one for each file)
@@ -144,10 +172,10 @@ def test_collect_all(dependency_collector, temp_dir, sample_code):
     mock_client = Mock()
     dependency_collector.openrouter_client = mock_client
     
-    # Mock generate_dependencies to return frameworks
+    # Mock get_raw_json_response to return frameworks
     frameworks = ["tensorflow", "numpy", "pandas"]
-    with patch('src.processors.dependency_collector.generate_dependencies', 
-              return_value={"frameworks": frameworks}):
+    with patch('src.utils.process_prompts.get_raw_json_response', 
+              return_value=frameworks):
         output_path = dependency_collector.collect_all(prompt_file)
         
         # Verify output file exists and contains correct data
@@ -161,3 +189,26 @@ def test_collect_all(dependency_collector, temp_dir, sample_code):
                     {"name": "tensorflow", "count": 1}
                 ]
             }
+
+def test_analyze_file_with_invalid_response(dependency_collector, temp_dir, sample_code):
+    """Test analyzing file with invalid response format."""
+    # Create test code file
+    code_file = os.path.join(temp_dir, "test_code.txt")
+    with open(code_file, "w", encoding="utf-8") as f:
+        f.write(sample_code)
+        
+    # Create test prompt file
+    prompt_file = os.path.join(temp_dir, "test_prompt.txt")
+    with open(prompt_file, "w", encoding="utf-8") as f:
+        f.write("Test prompt")
+        
+    # Mock OpenRouter client
+    mock_client = Mock()
+    dependency_collector.openrouter_client = mock_client
+    
+    # Mock get_raw_json_response to return invalid format
+    with patch('src.utils.process_prompts.get_raw_json_response', 
+              return_value={"invalid": "format"}):
+        # Should handle invalid format gracefully
+        result = dependency_collector.analyze_file(code_file, prompt_file)
+        assert result == {"frameworks": set()}

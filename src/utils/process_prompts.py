@@ -9,19 +9,19 @@ from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
-def handle_json_response(client, messages: List[Dict[str, str]], model: str, max_tokens: int, max_retries: int) -> Any:
+def get_raw_json_response(client, messages: List[Dict[str, str]], max_retries: int = 3, model: str = None, max_tokens: int = 2000) -> Any:
     """
-    Handle JSON response from LLM with retry logic for format errors.
+    Get raw JSON response from LLM with retry logic.
     
     Args:
         client: OpenRouterClient instance
         messages: List of message dictionaries
+        max_retries: Maximum retries for format correction
         model: Optional model override
         max_tokens: Maximum tokens to generate
-        max_retries: Maximum retries for format correction
         
     Returns:
-        Parsed JSON data
+        Raw parsed JSON data
         
     Raises:
         ValueError: If JSON parsing fails after max retries
@@ -38,40 +38,18 @@ def handle_json_response(client, messages: List[Dict[str, str]], model: str, max
             try:
                 data = json.loads(content)
                 logger.debug(f"Parsed JSON:\n{json.dumps(data, indent=2)}")
+                return data
             except json.JSONDecodeError as e:
-                logger.warning(f"JSON parse error: {str(e)}\nContent:\n{content}")
-                raise ValueError(f"JSON parse error: {str(e)}")
-            
-            # Handle wrapped ideas
-            if isinstance(data, dict) and "ideas" in data:
-                logger.debug("Found ideas wrapper, extracting ideas array")
-                data = data["ideas"]
-            
-            # Validate it's a list
-            if not isinstance(data, list):
-                logger.warning(f"Expected list, got {type(data)}\nContent:\n{json.dumps(data, indent=2)}")
-                raise ValueError("Expected list")
-            
-            # Validate each item has required fields
-            for item in data:
-                if not isinstance(item, dict):
-                    logger.warning(f"Expected dict, got {type(item)}\nItem:\n{json.dumps(item, indent=2)}")
-                    raise ValueError("Expected dict")
-                if "Idea" not in item or "Details" not in item:
-                    logger.warning(f"Missing required fields\nItem:\n{json.dumps(item, indent=2)}")
-                    raise ValueError("Missing required fields")
-                if not isinstance(item["Idea"], str) or not isinstance(item["Details"], str):
-                    logger.warning(f"Invalid field types\nItem:\n{json.dumps(item, indent=2)}")
-                    raise ValueError("Invalid field types")
-            
-            return data
+                # If it's not JSON, return the raw string
+                logger.debug("Treating non-JSON response as raw string")
+                return content.strip()
             
         except Exception as e:
-            error_msg = f"Attempt {attempt + 1}/{max_retries}: Format validation failed: {str(e)}"
+            error_msg = f"Attempt {attempt + 1}/{max_retries}: Response processing failed: {str(e)}"
             logger.warning(error_msg)
             
             if attempt == max_retries - 1:
-                raise ValueError(f"Failed to get valid JSON format after {max_retries} attempts")
+                raise ValueError(f"Failed to get valid response after {max_retries} attempts")
             
             # Add assistant's response to conversation history
             messages.append({
@@ -117,126 +95,6 @@ def get_text_response(client, messages: List[Dict[str, str]], model: str = None,
         error_msg = f"Invalid response structure: missing key {str(e)}\nFull response:\n{json.dumps(response, indent=2)}"
         logger.error(error_msg)
         raise ValueError(error_msg)
-
-def generate_ideas(client, initial_prompt: str, second_prompt: str, format_prompt: str, num_ideas: int = 15, model: str = None, max_format_retries: int = 3, max_tokens: int = 10000, more_items_prompt: str = None) -> List:
-    """
-    Generate and validate product ideas.
-    
-    Args:
-        client: OpenRouterClient instance
-        initial_prompt: The initial prompt for generating ideas
-        second_prompt: The prompt for getting more specific ideas
-        format_prompt: The prompt for setting format and batch size
-        num_ideas: Number of ideas to generate (default: 15)
-        model: Optional model override
-        max_format_retries: Maximum retries for format correction
-        max_tokens: Maximum number of tokens to generate
-        more_items_prompt: The prompt template for requesting more items
-        
-    Returns:
-        List of validated ideas
-        
-    Raises:
-        ValueError: If validation fails after max retries
-        RuntimeError: If API request fails
-    """
-    logger.info("Starting idea generation...")
-    
-    # Initialize list to store all ideas
-    all_ideas = []
-    remaining_ideas = num_ideas
-    
-    if more_items_prompt is None:
-        raise ValueError("more_items_prompt must be provided")
-    
-    # Step 1: Get initial broad ideas (text response)
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful Assistant."
-        },
-        {
-            "role": "user",
-            "content": initial_prompt
-        }
-    ]
-    
-    # Get initial text response
-    initial_response = get_text_response(client, messages, model, max_tokens)
-    logger.debug(f"Initial response:\n{initial_response}")
-    
-    # Step 2: Get more specific ideas (text response)
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful Assistant."
-        },
-        {
-            "role": "assistant",
-            "content": initial_response
-        },
-        {
-            "role": "user",
-            "content": second_prompt
-        }
-    ]
-    
-    # Get more specific text response
-    specific_response = get_text_response(client, messages, model, max_tokens)
-    logger.debug(f"Specific response:\n{specific_response}")
-    
-    # Step 3: Get formatted ideas with initial batch size
-    batch_size = min(25, remaining_ideas)
-    current_format_prompt = format_prompt.replace("{NUM_IDEAS}", str(batch_size))
-    
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful assistant that provides responses in valid JSON format."
-        },
-        {
-            "role": "assistant",
-            "content": specific_response
-        },
-        {
-            "role": "user",
-            "content": current_format_prompt
-        }
-    ]
-    
-    # Get formatted ideas (now we start JSON validation)
-    formatted_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
-    all_ideas.extend(formatted_ideas)
-    remaining_ideas -= len(formatted_ideas)
-    
-    # Step 4: If we need more ideas, keep requesting them in batches
-    while remaining_ideas > 0:
-        batch_size = min(25, remaining_ideas)
-        logger.debug(f"Requesting {batch_size} more ideas...")
-        
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that responds in valid JSON format."
-            },
-            {
-                "role": "assistant",
-                "content": json.dumps(formatted_ideas)
-            },
-            {
-                "role": "user",
-                "content": more_items_prompt.replace("{NUM}", str(batch_size))
-            }
-        ]
-        
-        # Get next batch of ideas
-        batch_ideas = handle_json_response(client, messages, model, max_tokens, max_format_retries)
-        all_ideas.extend(batch_ideas)
-        remaining_ideas -= len(batch_ideas)
-        formatted_ideas = batch_ideas
-    
-    logger.info(f"Successfully generated {len(all_ideas)} ideas")
-    return all_ideas
 
 def generate_requirements(client, prompt: str, model: str = None, max_tokens: int = 2000) -> str:
     """
@@ -356,9 +214,9 @@ def generate_dependencies(client, prompt: str, code: str, model: str = None, max
     ]
     
     try:
-        # Get parsed JSON data
-        data = handle_json_response(client, messages, model, max_tokens, max_retries=3)
-        return {"frameworks": data}
+        # Get raw response from LLM
+        raw_data = get_raw_json_response(client, messages, max_retries=3, model=model, max_tokens=max_tokens)
+        return {"frameworks": raw_data}
     except Exception as e:
         logger.error(f"Failed to collect dependencies: {str(e)}")
         return {"frameworks": []}

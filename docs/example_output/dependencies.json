@@ -1,239 +1,83 @@
 {
   "frameworks": [
     {
-      "name": "angular",
+      "name": "bertmodel",
       "count": 1
     },
     {
-      "name": "apache commons",
+      "name": "berttokenizer",
       "count": 1
     },
     {
-      "name": "apache commons math",
-      "count": 1
+      "name": "keras",
+      "count": 6
     },
     {
-      "name": "arduino",
-      "count": 1
-    },
-    {
-      "name": "caret",
-      "count": 2
-    },
-    {
-      "name": "cluster",
-      "count": 1
-    },
-    {
-      "name": "csv",
-      "count": 1
-    },
-    {
-      "name": "deeplearning4j",
-      "count": 9
-    },
-    {
-      "name": "django",
+      "name": "matplotlib",
       "count": 3
     },
     {
-      "name": "dlib",
+      "name": "mozilla deepspeech",
       "count": 1
-    },
-    {
-      "name": "dplyr",
-      "count": 2
-    },
-    {
-      "name": "eigen",
-      "count": 1
-    },
-    {
-      "name": "express",
-      "count": 1
-    },
-    {
-      "name": "factoextra",
-      "count": 1
-    },
-    {
-      "name": "flask",
-      "count": 3
-    },
-    {
-      "name": "forecast",
-      "count": 1
-    },
-    {
-      "name": "ggplot2",
-      "count": 1
-    },
-    {
-      "name": "google test",
-      "count": 4
-    },
-    {
-      "name": "gtest",
-      "count": 2
-    },
-    {
-      "name": "http.server",
-      "count": 1
-    },
-    {
-      "name": "java api for restful web services (jax-rs)",
-      "count": 1
-    },
-    {
-      "name": "junit",
-      "count": 8
-    },
-    {
-      "name": "lubridate",
-      "count": 1
-    },
-    {
-      "name": "minitest",
-      "count": 1
-    },
-    {
-      "name": "mongoose",
-      "count": 1
-    },
-    {
-      "name": "mysql",
-      "count": 3
-    },
-    {
-      "name": "nd4j",
-      "count": 8
     },
     {
       "name": "nltk",
-      "count": 1
-    },
-    {
-      "name": "nnet",
-      "count": 1
-    },
-    {
-      "name": "nokogiri",
-      "count": 1
+      "count": 5
     },
     {
       "name": "numpy",
-      "count": 7
-    },
-    {
-      "name": "open-uri",
-      "count": 1
+      "count": 11
     },
     {
       "name": "opencv",
-      "count": 2
-    },
-    {
-      "name": "os",
       "count": 1
     },
     {
       "name": "pandas",
-      "count": 9
+      "count": 12
     },
     {
-      "name": "pickle",
-      "count": 3
-    },
-    {
-      "name": "plumber",
+      "name": "pil",
       "count": 1
     },
     {
-      "name": "psycopg2",
+      "name": "pytorch",
       "count": 4
-    },
-    {
-      "name": "randomforest",
-      "count": 1
-    },
-    {
-      "name": "react native",
-      "count": 1
-    },
-    {
-      "name": "react_native",
-      "count": 1
-    },
-    {
-      "name": "requests",
-      "count": 1
-    },
-    {
-      "name": "rpostgresql",
-      "count": 3
     },
     {
       "name": "scikit-learn",
-      "count": 4
+      "count": 13
     },
     {
-      "name": "shiny",
-      "count": 3
+      "name": "seaborn",
+      "count": 2
     },
     {
       "name": "sklearn",
-      "count": 5
-    },
-    {
-      "name": "socketserver",
       "count": 1
     },
     {
       "name": "spacy",
-      "count": 1
-    },
-    {
-      "name": "spring",
-      "count": 3
-    },
-    {
-      "name": "spring boot",
-      "count": 5
-    },
-    {
-      "name": "sqlalchemy",
-      "count": 2
-    },
-    {
-      "name": "supertest",
-      "count": 1
+      "count": 4
     },
     {
       "name": "tensorflow",
-      "count": 8
-    },
-    {
-      "name": "tensorflow lite",
-      "count": 2
-    },
-    {
-      "name": "testthat",
-      "count": 2
+      "count": 12
     },
     {
       "name": "torch",
       "count": 1
     },
     {
-      "name": "unittest",
-      "count": 5
-    },
-    {
-      "name": "vue.js",
+      "name": "torchvision",
       "count": 1
     },
     {
-      "name": "wifi",
+      "name": "transformers",
+      "count": 3
+    },
+    {
+      "name": "wave",
       "count": 1
     }
   ]

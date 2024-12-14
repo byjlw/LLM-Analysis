@@ -1,0 +1,248 @@
+**Smart Home Automation Hub Code**
+=====================================
+
+### Microcontroller Code (ESP32/ESP8266, C++)
+
+```cpp
+// Include necessary libraries for ESP32/ESP8266
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+
+// Define constants for Wi-Fi and MQTT
+const char* SSID = "your_ssid";
+const char* PASSWORD = "your_password";
+const char* MQTT_SERVER = "your_mqtt_server";
+const int MQTT_PORT = 1883;
+
+// Define topic for publishing sensor data
+const char* SENSOR_TOPIC = "home/sensors";
+
+// Initialize Wi-Fi and MQTT client
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(115200);
+
+  // Connect to Wi-Fi
+  WiFi.begin(SSID, PASSWORD);
+  while (WiFi.status()!= WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+
+  // Connect to MQTT server
+  client.setServer(MQTT_SERVER, MQTT_PORT);
+}
+
+void loop() {
+  // Read sensor data (temperature, humidity, light)
+  int temperature = analogRead(A0);
+  int humidity = analogRead(A1);
+  int light = analogRead(A2);
+
+  // Create JSON object for sensor data
+  DynamicJsonDocument jsonDoc(2048);
+  jsonDoc["temperature"] = temperature;
+  jsonDoc["humidity"] = humidity;
+  jsonDoc["light"] = light;
+
+  // Publish sensor data to MQTT topic
+  char jsonBuffer[2048];
+  jsonDoc.printTo(jsonBuffer);
+  client.publish(SENSOR_TOPIC, jsonBuffer);
+
+  // Delay for 1 second
+  delay(1000);
+}
+```
+
+### Cloud Service Code (AWS Lambda, Node.js)
+
+```javascript
+// Import necessary libraries for AWS Lambda
+const AWS = require('aws-sdk');
+const mqtt = require('mqtt');
+
+// Define constants for AWS IoT and MQTT
+const IOT_ENDPOINT = 'your_iot_endpoint';
+const MQTT_TOPIC = 'home/sensors';
+
+// Initialize AWS IoT and MQTT client
+const iot = new AWS.Iot({ endpoint: IOT_ENDPOINT });
+const client = mqtt.connect(`mqtt://${IOT_ENDPOINT}:8883`);
+
+// Define Lambda function handler
+exports.handler = async (event) => {
+  // Subscribe to MQTT topic
+  client.subscribe(MQTT_TOPIC);
+
+  // Define callback for MQTT messages
+  client.on('message', (topic, message) => {
+    // Parse JSON message
+    const jsonData = JSON.parse(message.toString());
+
+    // Process sensor data (temperature, humidity, light)
+    const temperature = jsonData.temperature;
+    const humidity = jsonData.humidity;
+    const light = jsonData.light;
+
+    // Use machine learning model to predict energy consumption
+    const prediction = predictEnergyConsumption(temperature, humidity, light);
+
+    // Publish prediction to MQTT topic
+    const predictionTopic = 'home/predictions';
+    client.publish(predictionTopic, JSON.stringify({ prediction: prediction }));
+  });
+
+  // Return success response
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: 'Success' }),
+  };
+};
+
+// Define machine learning model for predicting energy consumption
+function predictEnergyConsumption(temperature, humidity, light) {
+  // Load machine learning model (e.g. TensorFlow.js)
+  const model = tf.loadLayersModel('file://model.json');
+
+  // Create input tensor
+  const inputTensor = tf.tensor2d([temperature, humidity, light], [1, 3]);
+
+  // Make prediction
+  const prediction = model.predict(inputTensor);
+
+  // Return predicted energy consumption
+  return prediction.arraySync()[0];
+}
+```
+
+### Machine Learning Model Code (TensorFlow.js)
+
+```javascript
+// Import necessary libraries for TensorFlow.js
+const tf = require('@tensorflow/tfjs');
+
+// Define constants for machine learning model
+const INPUT_SHAPE = [3]; // temperature, humidity, light
+const OUTPUT_SHAPE = [1]; // energy consumption
+
+// Define machine learning model architecture
+const model = tf.sequential();
+model.add(tf.layers.dense({ units: 64, activation: 'relu', inputShape: INPUT_SHAPE }));
+model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+model.add(tf.layers.dense({ units: OUTPUT_SHAPE[0] }));
+
+// Compile machine learning model
+model.compile({ optimizer: tf.optimizers.adam(), loss: 'meanSquaredError' });
+
+// Train machine learning model
+const trainingData = [
+  { temperature: 20, humidity: 50, light: 100, energyConsumption: 100 },
+  { temperature: 25, humidity: 60, light: 120, energyConsumption: 120 },
+  { temperature: 30, humidity: 70, light: 140, energyConsumption: 140 },
+  //...
+];
+
+const trainingInputs = trainingData.map((data) => [data.temperature, data.humidity, data.light]);
+const trainingOutputs = trainingData.map((data) => [data.energyConsumption]);
+
+model.fit(tf.tensor2d(trainingInputs), tf.tensor2d(trainingOutputs), {
+  epochs: 100,
+  batchSize: 32,
+  callbacks: {
+    onEpochEnd: (epoch, logs) => {
+      console.log(`Epoch ${epoch + 1}: loss = ${logs.loss}`);
+    },
+  },
+});
+
+// Save machine learning model to file
+model.save('file://model.json');
+```
+
+### Web Interface Code (React.js)
+
+```javascript
+// Import necessary libraries for React.js
+import React, { useState, useEffect } from 'react';
+import { MQTTClient } from 'mqtt';
+
+// Define constants for MQTT and web interface
+const MQTT_BROKER = 'your_mqtt_broker';
+const MQTT_PORT = 8883;
+const MQTT_TOPIC = 'home/predictions';
+
+// Initialize MQTT client
+const client = new MQTTClient();
+
+// Define React component for web interface
+function App() {
+  const [prediction, setPrediction] = useState(null);
+
+  useEffect(() => {
+    // Connect to MQTT broker
+    client.connect(`mqtt://${MQTT_BROKER}:${MQTT_PORT}`);
+
+    // Subscribe to MQTT topic
+    client.subscribe(MQTT_TOPIC);
+
+    // Define callback for MQTT messages
+    client.on('message', (topic, message) => {
+      // Parse JSON message
+      const jsonData = JSON.parse(message.toString());
+
+      // Update prediction state
+      setPrediction(jsonData.prediction);
+    });
+  }, []);
+
+  return (
+    <div>
+      <h1>Smart Home Automation Hub</h1>
+      <p>Prediction: {prediction}</p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Voice Assistant Code (Google Assistant, Node.js)
+
+```javascript
+// Import necessary libraries for Google Assistant
+const { dialogflow } = require('actions-on-google');
+
+// Define constants for Google Assistant and MQTT
+const MQTT_BROKER = 'your_mqtt_broker';
+const MQTT_PORT = 8883;
+const MQTT_TOPIC = 'home/predictions';
+
+// Initialize Google Assistant client
+const app = dialogflow();
+
+// Define intent handler for Google Assistant
+app.intent('Get Prediction', (conv) => {
+  // Connect to MQTT broker
+  const client = require('mqtt').connect(`mqtt://${MQTT_BROKER}:${MQTT_PORT}`);
+
+  // Subscribe to MQTT topic
+  client.subscribe(MQTT_TOPIC);
+
+  // Define callback for MQTT messages
+  client.on('message', (topic, message) => {
+    // Parse JSON message
+    const jsonData = JSON.parse(message.toString());
+
+    // Respond with prediction
+    conv.ask(`The predicted energy consumption is ${jsonData.prediction}.`);
+  });
+});
+
+// Export Google Assistant app
+exports.app = app;
+```

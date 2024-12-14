@@ -9,6 +9,24 @@ from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
+def clean_response(content: str) -> str:
+    """
+    Clean response by removing markdown code block markers if present.
+    
+    Args:
+        content: Raw content that may contain markdown code blocks
+        
+    Returns:
+        Content with markdown code blocks removed if present,
+        otherwise returns original content
+    """
+    content = content.strip()
+    if content.startswith("```json"):
+        content = content[7:]  # Remove ```json prefix
+        if content.endswith("```"):
+            content = content[:-3]  # Remove ``` suffix
+    return content.strip()
+
 def get_raw_json_response(client, messages: List[Dict[str, str]], max_retries: int = 3, model: str = None, max_tokens: int = 2000) -> Any:
     """
     Get raw JSON response from LLM with retry logic.
@@ -34,15 +52,20 @@ def get_raw_json_response(client, messages: List[Dict[str, str]], max_retries: i
             content = response["choices"][0]["message"]["content"]
             logger.debug(f"Raw content from API:\n{content}")
             
+            # Clean response by removing markdown code blocks if present
+            content = clean_response(content)
+            logger.debug(f"Cleaned content:\n{content}")
+            
             # Try to parse JSON
             try:
                 data = json.loads(content)
                 logger.debug(f"Parsed JSON:\n{json.dumps(data, indent=2)}")
                 return data
             except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON: {str(e)}")
                 # If it's not JSON, return the raw string
-                logger.debug("Treating non-JSON response as raw string")
-                return content.strip()
+                if attempt == max_retries - 1:
+                    return content.strip()
             
         except Exception as e:
             error_msg = f"Attempt {attempt + 1}/{max_retries}: Response processing failed: {str(e)}"

@@ -1,2 +1,2 @@
-I got this request from my product manager and need to write code to prototype and validate that we can build this thing. What do you think the current hardware and software stack looks like?
+I need to know what kind of hardware stack is typical for this sort of thing, and what languages are often used for the various hardware.
 

@@ -1,11 +1,10 @@
 # LLM Analysis
-
+**A python project that uses LLMs, to analyze LLMs, built using an LLM. 90% of this code is generated using cline and Clude 3.5 Sonnet**
 A Python tool for analyzing various aspects of Large Language Model (LLM) outputs. Currently focused on analyzing code dependencies to determine which frameworks are being used for particular coding requests.
 
 See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design
 
 ## Features
-
 - Generate product ideas using LLM models
 - Convert product ideas into detailed requirements
 - Generate code implementations based on requirements
@@ -13,6 +12,8 @@ See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design
 - Comprehensive dependency tracking and analysis
 - Flexible workflow with ability to start from any step
 - Custom working directory naming
+- Verified at num ideas up to 100
+- Verified against Llama, Antropic, Qwen, OpenAI and DeepSeek models
 
 ## Requirements
 
@@ -54,6 +55,56 @@ llm-analysis coding-dependencies \
     --log-level DEBUG \
     --start-step 2 \
     --working-dir my-project
+```
+
+### Multi-Model Analysis Script
+
+Analyze multiple models at once using this script. Update the script with the models you want to use.
+```bash
+./coding_dependencies_job.sh <api_key> [num_ideas] [start_step working_dir]
+```
+
+Parameters:
+- `api_key`: (Required) Your OpenRouter API key
+- `num_ideas`: (Optional) Number of ideas to generate (defaults to 15)
+- `start_step`: (Optional) Which pipeline stage to start from (1-4)
+- `working_dir`: (Required if start_step is provided) Name of the working directory
+
+Examples:
+```bash
+# Basic usage - creates timestamped directory
+./coding_dependencies_job.sh sk_or_...
+
+# Generate 20 ideas - creates timestamped directory
+./coding_dependencies_job.sh sk_or_... 20
+
+# Start from step 2 using existing directory
+./coding_dependencies_job.sh sk_or_... 15 2 my_analysis
+```
+
+The script:
+- Runs analysis using multiple models
+- Directory structure:
+  * Creates a parent working directory (timestamp if not specified)
+  * Each model gets its own subdirectory within the working directory
+- When starting from a later step (2-4):
+  * Uses the specified working directory
+  * Skips models that don't have existing subdirectories
+- Continues to next model if one fails
+- Includes delay between runs to prevent rate limiting
+
+Example output structure:
+```
+output/
+└── 03-15-24-14-30-45/          # Parent directory (timestamp or user-specified)
+    ├── qwen_qwen-2.5-coder-32b-instruct/
+    │   ├── ideas.json
+    │   ├── requirements/
+    │   ├── code/
+    │   └── dependencies.json
+    ├── meta-llama_llama-3.3-70b-instruct/
+    ├── openai_gpt-4o-2024-11-20/
+    └── deepseek_deepseek-chat/
 ```
 
 ### Available Steps

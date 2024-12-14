@@ -191,7 +191,8 @@ class IdeaGenerator:
             logger.debug(f"Specific response:\n{specific_response}")
             
             # Step 3: Get formatted ideas with initial batch size
-            current_format_prompt = list_prompt.replace("{NUM_IDEAS}", str(self.batch_size))
+            initial_batch_size = min(num_ideas, self.batch_size)
+            current_format_prompt = list_prompt.replace("{NUM_IDEAS}", str(initial_batch_size))
             
             messages = [
                 {
@@ -215,7 +216,8 @@ class IdeaGenerator:
             
             # Step 4: If we need more ideas, keep requesting them in batches
             while remaining_ideas > 0:
-                logger.debug(f"Requesting {self.batch_size} more ideas...")
+                current_batch_size = min(remaining_ideas, self.batch_size)
+                logger.debug(f"Requesting {current_batch_size} more ideas...")
                 
                 messages = [
                     {
@@ -228,7 +230,7 @@ class IdeaGenerator:
                     },
                     {
                         "role": "user",
-                        "content": more_items_prompt.replace("{NUM}", str(self.batch_size))
+                        "content": more_items_prompt.replace("{NUM}", str(current_batch_size))
                     }
                 ]
                 

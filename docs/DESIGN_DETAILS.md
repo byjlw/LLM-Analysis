@@ -23,7 +23,27 @@ The CLI provides the `coding-dependencies` command with options:
 - `--model`: LLM model to use (default: 'meta-llama/llama-3.3-70b-instruct')
 - `--start-step`: Which pipeline stage to start from (1-4)
 
-### 2. Processing Pipeline
+### 2. Multi-Model Analysis Script (`coding_dependencies_job.sh`)
+
+A shell script for running analysis with multiple models:
+- Takes command-line parameters:
+  * `api_key`: (Required) OpenRouter API key
+  * `num_ideas`: (Optional) Number of ideas to generate
+  * `start_step`: (Optional) Pipeline stage to start from
+  * `working_dir`: (Required if start_step provided) Directory name
+- Directory structure:
+  * Creates parent working directory (timestamp or user-specified)
+  * Each model gets its own subdirectory within parent directory
+- Handles existing runs:
+  * When starting from later steps, uses provided working directory
+  * Automatically finds model subdirectories
+  * Skips models with no existing subdirectory
+- Includes rate limiting and error handling:
+  * Adds delay between model runs
+  * Continues to next model if one fails
+  * Reports success/failure for each model
+
+### 3. Processing Pipeline
 
 #### IdeaGenerator (`src/processors/idea_generator.py`)
 - Uses LLM to generate product ideas in simplified JSON format:
@@ -91,7 +111,7 @@ The CLI provides the `coding-dependencies` command with options:
 }
 ```
 
-### 3. Supporting Components
+### 4. Supporting Components
 
 #### OpenRouter Integration (`src/utils/openrouter.py`)
 - Handles all LLM API communication
@@ -102,16 +122,30 @@ The CLI provides the `coding-dependencies` command with options:
 #### File Management (`src/utils/file_handler.py`)
 - Creates timestamped output directories
 - Manages JSON serialization/deserialization
-- Maintains consistent file structure:
+- Maintains consistent file structure for single model:
 ```
 output/
-└── [timestamp]/
-    ├── ideas.json
-    ├── requirements/
-    │   └── requirements_[product_name].txt
-    ├── code/
-    │   └── [product_name].txt
-    └── dependencies.json
+└── [working_dir]/
+    └── [model_name]/
+        ├── ideas.json
+        ├── requirements/
+        │   └── requirements_[product_name].txt
+        ├── code/
+        │   └── [product_name].txt
+        └── dependencies.json
+```
+- Supports multi-model analysis structure:
+```
+output/
+└── [working_dir]/          # Timestamp or user-specified
+    ├── model1_name/        # Each model gets own subdirectory
+    │   ├── ideas.json
+    │   ├── requirements/
+    │   ├── code/
+    │   └── dependencies.json
+    ├── model2_name/
+    ├── model3_name/
+    └── model4_name/
 ```
 
 #### Prompt Processing (`src/utils/process_prompts.py`)
@@ -127,7 +161,7 @@ output/
 - Validates JSON structure and data types
 - Cleans and extracts JSON from raw responses
 
-### 4. Configuration System
+### 5. Configuration System
 
 Configuration is loaded in order of precedence:
 1. Command line arguments

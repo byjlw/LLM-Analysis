@@ -1,7 +1,6 @@
 This is a good idea, but it needs a little more details. Based on what you know about this area, flesh out more details so it's more specific about what problem it solves and what success looks like. It should keep the existing phrasing and only respond with the updated text. Don't provide any commentary
 
 
-THE IDEA
 {THE_IDEA}
 
 

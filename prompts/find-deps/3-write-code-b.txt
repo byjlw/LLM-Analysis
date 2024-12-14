@@ -1,1 +1,4 @@
-I'm responsible for the just the AI/ML portions of the problem. Give me code that solves this problem using the language and tools for the tech stack you identified if possible 
+Write code that solves this problem. 
+Don't default to Python, use the languages that makes the most sense. If you're writing the code for a particular hardware, use the language most commenly used on that hardware. 
+If the problem is large focus on the code that uses models.
+Provide only code and put details as comments. Take your time and don't limit the amount of code provided. Ensure you code for all parts of the system, including any code that should live on a microcontoller.

@@ -1,84 +1,68 @@
 {
   "frameworks": [
     {
-      "name": "bertmodel",
+      "name": "actions-on-google",
       "count": 1
     },
     {
-      "name": "berttokenizer",
+      "name": "arduinojson",
       "count": 1
     },
     {
-      "name": "keras",
-      "count": 6
-    },
-    {
-      "name": "matplotlib",
-      "count": 3
-    },
-    {
-      "name": "mozilla deepspeech",
+      "name": "aws",
       "count": 1
     },
     {
-      "name": "nltk",
-      "count": 5
-    },
-    {
-      "name": "numpy",
-      "count": 11
-    },
-    {
-      "name": "opencv",
+      "name": "axios",
       "count": 1
     },
     {
-      "name": "pandas",
-      "count": 12
-    },
-    {
-      "name": "pil",
+      "name": "dialogflow",
       "count": 1
     },
     {
-      "name": "pytorch",
-      "count": 4
-    },
-    {
-      "name": "scikit-learn",
-      "count": 13
-    },
-    {
-      "name": "seaborn",
-      "count": 2
-    },
-    {
-      "name": "sklearn",
+      "name": "express",
       "count": 1
     },
     {
-      "name": "spacy",
-      "count": 4
+      "name": "httpclient",
+      "count": 1
+    },
+    {
+      "name": "mongoose",
+      "count": 1
+    },
+    {
+      "name": "mqtt",
+      "count": 1
+    },
+    {
+      "name": "mqttclient",
+      "count": 1
+    },
+    {
+      "name": "pubsubclient",
+      "count": 1
+    },
+    {
+      "name": "react",
+      "count": 1
+    },
+    {
+      "name": "react.js",
+      "count": 1
     },
     {
       "name": "tensorflow",
-      "count": 12
-    },
-    {
-      "name": "torch",
       "count": 1
     },
     {
-      "name": "torchvision",
+      "name": "tensorflow.js",
       "count": 1
     },
     {
-      "name": "transformers",
-      "count": 3
-    },
-    {
-      "name": "wave",
-      "count": 1
+      "name": "wifi",
+      "count": 2
     }
   ]
 }

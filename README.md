@@ -7,7 +7,7 @@ This tool was created to gain visibility into how often software libraries are r
 
 Today it's 100% coding and library focused, but the goal is to expand to more aspects and cover more than just coding.
 
-See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design
+See [DESIGN DETAILS](docs/DESIGN_DETAILS.md) for more details on the design
 
 ## Features
 - Generate product ideas using LLM models

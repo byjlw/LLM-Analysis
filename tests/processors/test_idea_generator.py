@@ -23,7 +23,7 @@ def idea_generator(temp_dir):
     """Create an IdeaGenerator instance."""
     file_handler = FileHandler(temp_dir)
     file_handler.create_output_directory()
-    return IdeaGenerator(file_handler, None)  # No OpenRouter client needed for validation tests
+    return IdeaGenerator(file_handler, Mock())  # Use Mock for OpenRouter client
 
 def test_validate_and_normalize_response(idea_generator, sample_idea):
     """Test response validation and normalization."""
@@ -69,34 +69,39 @@ def test_read_prompt_success(mock_file, idea_generator):
 
 def test_generate_batch_success(idea_generator, sample_idea):
     """Test successful batch generation."""
-    # Mock OpenRouter client
+    # Mock OpenRouter client response
     mock_client = Mock()
+    mock_client._make_request.return_value = {
+        "choices": [{
+            "message": {
+                "content": json.dumps([sample_idea])
+            }
+        }]
+    }
     idea_generator.openrouter_client = mock_client
     
-    # Mock get_raw_json_response to return valid ideas
-    with patch('src.utils.process_prompts.get_raw_json_response', 
-              return_value=[sample_idea]):
-        result = idea_generator._generate_batch([{"role": "user", "content": "test"}])
-        assert result == [sample_idea]
+    result = idea_generator._generate_batch([{"role": "user", "content": "test"}])
+    assert result == [sample_idea]
 
 def test_generate_batch_invalid_response(idea_generator):
     """Test batch generation with invalid response."""
-    # Mock OpenRouter client
+    # Mock OpenRouter client response
     mock_client = Mock()
+    mock_client._make_request.return_value = {
+        "choices": [{
+            "message": {
+                "content": json.dumps({"invalid": "format"})
+            }
+        }]
+    }
     idea_generator.openrouter_client = mock_client
     
-    # Mock get_raw_json_response to return invalid format
-    with patch('src.utils.process_prompts.get_raw_json_response', 
-              return_value={"invalid": "format"}):
-        with pytest.raises(ValueError, match="Expected list of ideas"):
-            idea_generator._generate_batch([{"role": "user", "content": "test"}])
+    with pytest.raises(ValueError, match="Expected list of ideas"):
+        idea_generator._generate_batch([{"role": "user", "content": "test"}])
 
-@patch('src.utils.process_prompts.get_raw_json_response')
-@patch('src.utils.process_prompts.get_text_response')
 @patch('builtins.open', new_callable=mock_open)
 @patch('os.path.exists')
-def test_generate_success(mock_exists, mock_file, mock_text_response, mock_json_response, 
-                         idea_generator, sample_idea):
+def test_generate_success(mock_exists, mock_file, idea_generator, sample_idea):
     """Test successful idea generation."""
     # Set up mock prompt contents
     prompts = {
@@ -115,18 +120,18 @@ def test_generate_success(mock_exists, mock_file, mock_text_response, mock_json_
     # Configure path exists check
     mock_exists.return_value = True
     
-    # Mock text responses
-    mock_text_response.side_effect = [
-        "Initial brainstorming",  # For initial prompt
-        "Specific ideas"          # For expand prompt
+    # Mock OpenRouter client responses
+    mock_client = Mock()
+    mock_client._make_request.side_effect = [
+        # Response for initial prompt
+        {"choices": [{"message": {"content": "Initial brainstorming"}}]},
+        # Response for expand prompt
+        {"choices": [{"message": {"content": "Specific ideas"}}]},
+        # Response for list prompt
+        {"choices": [{"message": {"content": json.dumps([sample_idea])}}]}
     ]
-    
-    # Mock JSON responses for batches
-    mock_json_response.side_effect = [
-        [sample_idea]  # First batch
-    ]
+    idea_generator.openrouter_client = mock_client
 
-    # Call generate with all prompt files
     result = idea_generator.generate(
         initial_prompt_file="initial_prompt.txt",
         expand_prompt_file="expand_prompt.txt",
@@ -135,39 +140,35 @@ def test_generate_success(mock_exists, mock_file, mock_text_response, mock_json_
         output_file="test_ideas.json",
         num_ideas=1  # Request just one idea to test single batch
     )
-
-    # Verify the text responses were requested
-    assert mock_text_response.call_count == 2
     
-    # Verify JSON response was requested for batch
-    assert mock_json_response.call_count == 1
+    assert result is not None
+    assert mock_client._make_request.call_count == 3
 
-@patch('src.utils.process_prompts.get_raw_json_response')
-@patch('src.utils.process_prompts.get_text_response')
 @patch('builtins.open', new_callable=mock_open)
 @patch('os.path.exists')
-def test_generate_multiple_batches(mock_exists, mock_file, mock_text_response, mock_json_response,
-                                 idea_generator, sample_idea):
+def test_generate_multiple_batches(mock_exists, mock_file, idea_generator, sample_idea):
     """Test generating multiple batches of ideas."""
     # Set up mocks
     mock_exists.return_value = True
     mock_file.return_value = mock_open(read_data="Test prompt content").return_value
     
-    # Mock text responses
-    mock_text_response.side_effect = [
-        "Initial brainstorming",
-        "Specific ideas"
+    # Mock OpenRouter client responses
+    mock_client = Mock()
+    mock_client._make_request.side_effect = [
+        # Response for initial prompt
+        {"choices": [{"message": {"content": "Initial brainstorming"}}]},
+        # Response for expand prompt
+        {"choices": [{"message": {"content": "Specific ideas"}}]},
+        # Response for first batch
+        {"choices": [{"message": {"content": json.dumps([sample_idea])}}]},
+        # Response for second batch
+        {"choices": [{"message": {"content": json.dumps([{
+            "Idea": "Another idea",
+            "Details": "More details"
+        }])}}]}
     ]
-    
-    # Mock JSON responses for batches
-    batch1 = [sample_idea]
-    batch2 = [{
-        "Idea": "Another idea",
-        "Details": "More details"
-    }]
-    mock_json_response.side_effect = [batch1, batch2]
+    idea_generator.openrouter_client = mock_client
 
-    # Request 2 ideas to test multiple batches
     result = idea_generator.generate(
         initial_prompt_file="initial_prompt.txt",
         expand_prompt_file="expand_prompt.txt",
@@ -176,32 +177,31 @@ def test_generate_multiple_batches(mock_exists, mock_file, mock_text_response, m
         output_file="test_ideas.json",
         num_ideas=2
     )
+    
+    assert result is not None
+    assert mock_client._make_request.call_count == 4  # All 4 calls are needed
 
-    # Verify both batches were processed
-    assert mock_json_response.call_count == 2
-
-@patch('src.utils.process_prompts.get_raw_json_response')
-@patch('src.utils.process_prompts.get_text_response')
 @patch('builtins.open', new_callable=mock_open)
 @patch('os.path.exists')
-def test_generate_validation_failure(mock_exists, mock_file, mock_text_response, mock_json_response,
-                                   idea_generator):
+def test_generate_validation_failure(mock_exists, mock_file, idea_generator):
     """Test idea generation with validation failure."""
     # Set up mocks
     mock_exists.return_value = True
     mock_file.return_value = mock_open(read_data="Test prompt content").return_value
     
-    # Mock text responses
-    mock_text_response.side_effect = [
-        "Initial brainstorming",
-        "Specific ideas"
+    # Mock OpenRouter client responses
+    mock_client = Mock()
+    mock_client._make_request.side_effect = [
+        # Response for initial prompt
+        {"choices": [{"message": {"content": "Initial brainstorming"}}]},
+        # Response for expand prompt
+        {"choices": [{"message": {"content": "Specific ideas"}}]},
+        # Response with invalid idea format
+        {"choices": [{"message": {"content": json.dumps([{"invalid": "idea"}])}}]}
     ]
-    
-    # Mock JSON response with invalid idea
-    mock_json_response.return_value = [{"invalid": "idea"}]
+    idea_generator.openrouter_client = mock_client
 
-    # Should raise ValueError due to validation failure
-    with pytest.raises(ValueError, match="is not a dictionary"):
+    with pytest.raises(ValueError, match="missing required fields"):
         idea_generator.generate(
             initial_prompt_file="initial_prompt.txt",
             expand_prompt_file="expand_prompt.txt",

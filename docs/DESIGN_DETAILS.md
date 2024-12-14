@@ -26,26 +26,26 @@ The CLI provides the `coding-dependencies` command with options:
 ### 2. Processing Pipeline
 
 #### IdeaGenerator (`src/processors/idea_generator.py`)
-- Uses LLM to generate product ideas in structured JSON format:
+- Uses LLM to generate product ideas in simplified JSON format:
 ```json
 {
-    "Product Idea": "AI-powered investment advisor",
-    "Problem it solves": "Provides personalized investment recommendations",
-    "Software Techstack": ["Python", "Django", "Redis", "React"],
-    "Target hardware expectations": ["Web browsers", "Mobile devices"],
-    "Company profile": "Fintech",
-    "Engineering profile": "Web and data engineers"
+    "Idea": "AI-powered investment advisor",
+    "Details": "Detailed description of the product idea, its purpose, and key features"
 }
 ```
 - Validates all required fields are present
-- Ensures techstack and hardware expectations are proper lists
 - Supports batch generation with automatic retry for format errors
 - Uses conversation history to maintain context between batches
 - Uses configurable prompts for both initial generation and requesting more items
 
 #### RequirementAnalyzer (`src/processors/requirement_analyzer.py`) 
-- Takes each idea and generates detailed requirements
+- Takes each idea and generates detailed natural language requirements
 - Creates individual requirement files named after each product
+- Requirements include comprehensive descriptions of:
+  * Core functionality
+  * Technical requirements
+  * Success metrics
+  * Implementation considerations
 - Maintains mapping between requirements and source ideas
 - Stores all requirements in `/requirements` directory
 - Implements parallel processing for handling multiple ideas simultaneously
@@ -55,14 +55,20 @@ The CLI provides the `coding-dependencies` command with options:
 - Generates code implementation for each set of requirements
 - Uses normalized filenames to maintain traceability
 - Stores all generated code as .txt files in `/code` directory
+- Code output includes:
+  * Markdown-style documentation
+  * Required libraries and dependencies
+  * Code implementation with comments
+  * Detailed explanations of the implementation
 - Maps code files back to their requirements and ideas
 - Processes multiple requirements in parallel using ThreadPoolExecutor
 - Includes comprehensive logging for parallel execution status
 
 #### DependencyCollector (`src/processors/dependency_collector.py`)
-- Analyzes code files to identify frameworks used
+- Analyzes code files to identify frameworks and libraries used
 - Uses LLM to extract framework names from code
 - Tracks usage frequency of each framework
+- Focuses on ML/AI frameworks and scientific computing libraries
 - Processes multiple code files in parallel for improved performance
 - Aggregates results from parallel analysis into a unified counter
 - Outputs normalized dependency data:
@@ -70,12 +76,16 @@ The CLI provides the `coding-dependencies` command with options:
 {
     "frameworks": [
         {
-            "name": "django",
-            "count": 2
+            "name": "tensorflow",
+            "count": 12
         },
         {
-            "name": "react",
-            "count": 3
+            "name": "scikit-learn",
+            "count": 13
+        },
+        {
+            "name": "pandas",
+            "count": 12
         }
     ]
 }
@@ -110,9 +120,9 @@ output/
 - Supports conversation history for context maintenance
 - Provides specialized functions for each pipeline stage:
   * generate_ideas: Handles batch generation with format validation
-  * generate_requirements: Processes individual requirements
-  * generate_code: Manages code generation with max token limits
-  * generate_dependencies: Analyzes code for framework usage
+  * generate_requirements: Processes individual requirements into natural language
+  * generate_code: Manages code generation with markdown documentation
+  * generate_dependencies: Analyzes code for ML/AI framework usage
 - Includes comprehensive error handling and retry logic
 - Validates JSON structure and data types
 - Cleans and extracts JSON from raw responses
@@ -177,18 +187,24 @@ The tool uses comprehensive error handling throughout:
 
 1. **Parallel Processing**: All processors support parallel execution for improved performance
 
-2. **Text-Based Code Storage**: All generated code is stored as .txt files for consistency and easier LLM processing
+2. **Markdown Documentation**: Generated code includes comprehensive markdown documentation and explanations
 
-3. **Normalized Naming**: Uses normalized product names throughout the pipeline to maintain relationships between ideas, requirements, and code
+3. **Natural Language Requirements**: Requirements are generated in natural language format for better readability
 
-4. **Flexible Entry Points**: Can start processing from any pipeline stage using existing files
+4. **Simplified Idea Format**: Ideas use a streamlined JSON format focusing on core concept and details
 
-5. **Stateless Processing**: Each stage operates independently using files from previous stages
+5. **ML/AI Focus**: Dependency analysis focuses on machine learning and AI frameworks
 
-6. **Framework Detection**: Uses LLM analysis rather than regex/parsing to identify frameworks, making it language-agnostic
+6. **Normalized Naming**: Uses normalized product names throughout the pipeline to maintain relationships between ideas, requirements, and code
 
-7. **Robust Error Handling**: Comprehensive error handling and validation at each stage
+7. **Flexible Entry Points**: Can start processing from any pipeline stage using existing files
 
-8. **Detailed Logging**: Extensive logging throughout the system for debugging and monitoring
+8. **Stateless Processing**: Each stage operates independently using files from previous stages
 
-9. **Configurable Prompts**: All prompts including more_items are configurable through the configuration system
+9. **Framework Detection**: Uses LLM analysis rather than regex/parsing to identify frameworks, making it language-agnostic
+
+10. **Robust Error Handling**: Comprehensive error handling and validation at each stage
+
+11. **Detailed Logging**: Extensive logging throughout the system for debugging and monitoring
+
+12. **Configurable Prompts**: All prompts including more_items are configurable through the configuration system

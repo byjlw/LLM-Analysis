@@ -43,34 +43,6 @@ def mock_config():
         }
     }
 
-@pytest.fixture
-def mock_idea_generator():
-    """Create a mock IdeaGenerator."""
-    mock = Mock()
-    mock.generate.return_value = "/test/output/ideas.json"
-    return mock
-
-@pytest.fixture
-def mock_requirement_analyzer():
-    """Create a mock RequirementAnalyzer."""
-    mock = Mock()
-    mock.analyze_all.return_value = ["Test requirements"]
-    return mock
-
-@pytest.fixture
-def mock_code_generator():
-    """Create a mock CodeGenerator."""
-    mock = Mock()
-    mock.generate.return_value = True
-    return mock
-
-@pytest.fixture
-def mock_dependency_collector():
-    """Create a mock DependencyCollector."""
-    mock = Mock()
-    mock.collect_all.return_value = "/test/output/dependencies.json"
-    return mock
-
 def test_setup_logging():
     """Test logging setup."""
     with patch('logging.FileHandler') as mock_handler:
@@ -100,12 +72,16 @@ def test_main_missing_api_key():
 @patch('src.cli.OpenRouterClient', autospec=True)
 @patch('src.cli.FileHandler', autospec=True)
 @patch('src.cli.IdeaGenerator', autospec=True)
+@patch('src.cli.RequirementAnalyzer', autospec=True)
 @patch('src.cli.CodeGenerator', autospec=True)
+@patch('src.cli.DependencyCollector', autospec=True)
 @patch('src.cli.load_config')
 def test_main_config_override(
     mock_load_config,
-    mock_idea_cls,
+    mock_dependency_cls,
     mock_code_cls,
+    mock_requirement_cls,
+    mock_idea_cls,
     mock_file_cls,
     mock_openrouter_cls,
     mock_config
@@ -119,15 +95,22 @@ def test_main_config_override(
     mock_file_handler.current_output_dir = "/test/output"
     mock_file_cls.return_value = mock_file_handler
     
-    # Set up mock idea generator
+    # Set up mock processors
     mock_idea_generator = Mock()
     mock_idea_generator.generate.return_value = "/test/output/ideas.json"
     mock_idea_cls.return_value = mock_idea_generator
     
-    # Set up mock code generator
+    mock_requirement_analyzer = Mock()
+    mock_requirement_analyzer.analyze_all.return_value = ["Test requirements"]
+    mock_requirement_cls.return_value = mock_requirement_analyzer
+    
     mock_code_generator = Mock()
     mock_code_generator.generate.return_value = True
     mock_code_cls.return_value = mock_code_generator
+    
+    mock_dependency_collector = Mock()
+    mock_dependency_collector.collect_all.return_value = "/test/output/dependencies.json"
+    mock_dependency_cls.return_value = mock_dependency_collector
     
     # Run main function
     with patch('sys.exit'):
@@ -141,21 +124,29 @@ def test_main_config_override(
         max_retries=3
     )
 
-    # Verify idea generator was called with correct prompt files
+    # Verify processors were called with correct arguments
     mock_idea_generator.generate.assert_called_once_with(
         initial_prompt_file=mock_config["prompts"]["ideas"],
         expand_prompt_file=mock_config["prompts"]["ideas_expand"],
         list_prompt_file=mock_config["prompts"]["ideas_list"],
         more_items_prompt_file=mock_config["prompts"]["more_items"],
         output_file=mock_config["output"]["ideas_filename"],
-        num_ideas=15  # default value
+        num_ideas=15
     )
     
-    # Verify code generator was called with correct prompt files
+    mock_requirement_analyzer.analyze_all.assert_called_once_with(
+        prompt_file=mock_config["prompts"]["requirements"],
+        parallel_requests=5
+    )
+    
     mock_code_generator.generate.assert_called_once_with(
         initial_prompt_file=mock_config["prompts"]["code"],
         writer_prompt_file=mock_config["prompts"]["code_writer"],
-        parallel_requests=5  # default value
+        parallel_requests=5
+    )
+    
+    mock_dependency_collector.collect_all.assert_called_once_with(
+        prompt_file=mock_config["prompts"]["dependencies"]
     )
 
 @patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--num-ideas', '20'])
@@ -195,7 +186,7 @@ def test_main_num_ideas_override(
         list_prompt_file=mock_config["prompts"]["ideas_list"],
         more_items_prompt_file=mock_config["prompts"]["more_items"],
         output_file=mock_config["output"]["ideas_filename"],
-        num_ideas=20  # overridden value
+        num_ideas=20
     )
 
 @patch('sys.argv', ['llm-analysis', 'coding-dependencies', '--api-key', 'test-key', '--log-level', 'DEBUG'])

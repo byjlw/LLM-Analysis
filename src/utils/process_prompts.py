@@ -21,10 +21,17 @@ def clean_response(content: str) -> str:
         otherwise returns original content
     """
     content = content.strip()
-    if content.startswith("```json"):
+    
+    # Handle case with both markers
+    if content.startswith("```json") and content.endswith("```"):
+        content = content[7:-3]  # Remove ```json prefix and ``` suffix
+    # Handle case with only opening marker
+    elif content.startswith("```json"):
         content = content[7:]  # Remove ```json prefix
-        if content.endswith("```"):
-            content = content[:-3]  # Remove ``` suffix
+    # Handle case with only closing marker
+    elif content.endswith("```"):
+        content = content[:-3]  # Remove ``` suffix
+        
     return content.strip()
 
 def get_raw_json_response(client, messages: List[Dict[str, str]], max_retries: int = 3, model: str = None, max_tokens: int = 2000) -> Any:

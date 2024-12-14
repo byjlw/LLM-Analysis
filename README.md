@@ -5,7 +5,6 @@ A Python tool for analyzing various aspects of Large Language Model (LLM) output
 See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design
 
 ## Features
-
 - Generate product ideas using LLM models
 - Convert product ideas into detailed requirements
 - Generate code implementations based on requirements
@@ -13,6 +12,8 @@ See [Project Summary](docs/PROJECT_SUMMARY.md) for more details on the design
 - Comprehensive dependency tracking and analysis
 - Flexible workflow with ability to start from any step
 - Custom working directory naming
+- Verified at num ideas up to 100
+- Verified against Llama, Antropic, Qwen, OpenAI and DeepSeek models
 
 ## Requirements
 

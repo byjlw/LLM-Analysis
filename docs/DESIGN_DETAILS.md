@@ -4,12 +4,12 @@
 
 ## Overview
 
-The LLM Analysis tool analyzes code dependencies in LLM outputs through a 4-stage pipeline:
+The LLM Analysis tool analyzes code dependencies in code that an LLM generates via a 4-stage pipeline:
 
-1. Generate product ideas
-2. Convert ideas to requirements
-3. Generate code implementations
-4. Analyze framework dependencies
+1. Generate a ton of product ideas that can be used as coding tasks
+2. Flesh out each idea in enough detail that can be used to ask an LLM to write code
+3. Converse with the LLM using the details obtained in the previous tage
+4. Ask the LLM to identify all libraries or dependencies used in the code
 
 ![Design Diagram](design.png "Design Diagram")
 

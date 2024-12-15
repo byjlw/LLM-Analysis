@@ -11,6 +11,9 @@ The LLM Analysis tool analyzes code dependencies in LLM outputs through a 4-stag
 3. Generate code implementations
 4. Analyze framework dependencies
 
+![Design Diagram](design.png "Design Diagram")
+
+
 ## Core Components
 
 ### 1. Command Line Interface (`src/cli.py`)

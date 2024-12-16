@@ -3,6 +3,10 @@
 ## 1. Project Overview
 This project provides tools for analyzing various aspects of LLM model outputs, with the current focus on analyzing code dependencies to determine which frameworks are being used by coding requests.
 
+## Motivation
+
+This tool was created to gain visibility into how often software libraries are returned by AI systems in generated code, ensuring their relevance and adoption. As AI-driven, multi-modal interfaces transform search and SEO, traditional metrics are no longer sufficient. By tracking which libraries appear in AI-generated outputs, this tool helps us understand how AI models interact with existing code, enabling someone to adapt and optimize for the evolving landscape where AI increasingly shapes discovery and problem-solving.
+
 ## 2. Technical Details and Architecture
 [DESIGN_DETAILS.md for full details](DESIGN_DETAILS.md)
 

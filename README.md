@@ -2,13 +2,10 @@
 *A python project that uses LLMs, to analyze LLMs, built using an LLM. 90% of this code is generated using cline and Clude 3.5 Sonnet*
 
 ## What it does
-It uses a series of prompts to spawn a whole bunch of ideas which are turned into coding requests. That code is then sent back to the LLM to get insights into what software libraries or packages an LLM uses when writing code.
-
-## Motivation
-
-This tool was created to gain visibility into how often software libraries are returned by AI systems in generated code, ensuring their relevance and adoption. As AI-driven, multi-modal interfaces transform search and SEO, traditional metrics are no longer sufficient. By tracking which libraries appear in AI-generated outputs, this tool helps us understand how AI models interact with existing code, enabling someone to adapt and optimize for the evolving landscape where AI increasingly shapes discovery and problem-solving. 
-
-Today it's 100% coding and library focused, but the goal is to expand to more aspects and cover more than just coding.
+Currently it does one thing. 
+Tells you what code libraries and APIs LLMs are using when writing code. 
+This project solves the challenge of creating enough samples to get good coverage and scaling it cover different models and domains.
+![Design Diagram](docs/design.png "Design Diagram")
 
 See [DESIGN DETAILS](docs/DESIGN_DETAILS.md) for more details on the design
 
